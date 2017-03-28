@@ -20,7 +20,7 @@ datA$Time<-ifelse(floor(hourD)-hourD < 0, floor(hourD) + 0.5, floor(hourD))
   #this is wrong because day 187 at 6:00 is the same as day 188 at 5:00... Oops
 
   #what if we make the hours a decimal on the day!
-datA$timeDM<- datA$JDAY + (datA$Time / 100)
+datA$timeDM<- datA$JDAY + (datA$Time / 24)
   #learned that the data (if open in this window type) does not update automatically
   
     #Heather: How about sub-setting in the graphing process? is this possible? Future ref. 
