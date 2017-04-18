@@ -60,6 +60,13 @@ for(i in 69:84)
        lwd=1,  main=paste(names(datA)[i]), type = "l")
 dev.off ()
 
+#Generate pdf of Flow
+pdf(file="GermanFlow.pdf", 10 , 5)
+for (i  in 85:100)
+  plot(datA$timeDM, datA[,i], xlab= "Time", ylab = paste(names(datA)[i]), 
+       lwd=1, main=paste(names(datA)[i]), type = "l")
+dev.off ()
+
 # do sap flow calculation that excludes their data flags
   #F= (Pin-Qv-Qr)/ (4.186*Dt)
   #Would like to be new column
