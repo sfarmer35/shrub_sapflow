@@ -2,7 +2,7 @@
 setwd("C:\\Users\\Sabrina\\Google Drive\\Lab\\sapflow_sf\\German")
   #Q: ended up having to set wd by opening new project. How do I open a script without 
     #it being in a wd?
-getwd()
+setwd("c:\\Users\\hkropp\\Google Drive\\sapflow_sf\\German")
 
 #Input data from german sites
 datA<-read.csv("Data_PulledValues.csv")
