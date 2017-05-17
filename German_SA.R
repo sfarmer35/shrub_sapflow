@@ -1,6 +1,7 @@
 # set wd
 setwd("C:\\Users\\Sabrina\\Google Drive\\Lab\\sapflow_sf\\German")
-setwd("C:\\Users\\hkropp\\Google Drive\\sapflow_sf\\German")
+#3setwd("C:\\Users\\hkropp\\Google Drive\\sapflow_sf\\German")
+
 library(plyr)
 #input variables data
 datSA<-read.csv("Area_inputvalues.csv")
@@ -20,7 +21,9 @@ Hour3<-ifelse(floor(hourD$JHM)-hourD$JHM < 0, floor(hourD$JHM) + 0.5, floor(hour
 DOYSA<-ifelse(Hour3 < 5, JDay$JDAY - 1, JDay$JDAY)
 head(JDay)
 unique(Hour)
+
 JDay$TimePlot<-JDay$JDAY+(Hour3/24)
+
 #isolate a matrix of raw data for the sensors for sensors 1-16
 C<-datSA[5:20]
 B<-datSA[21:36]
@@ -34,10 +37,6 @@ SA<-datSA[85:100]
 datetable<-data.frame(doy=DOYSA,hour=Hour3)
 
 
-
-
-  #these values are now their own "data". What does it mean to be "data" vs "values"?
-  #which do I want them to be?
   
   #Sabrina: I suspect this is R studios label. I don't quite remember 
   # R studios classification but I suspect data refers to a data.frame
@@ -81,7 +80,7 @@ KshA<-KshAtemp[,2:17]
   #DG_Qr(i) = C_mv(i) * DG_Ksh(i)
   #DG_Qf(i) = DG_Pin(i) - DG_Qv(i) - DG_Qr(i)
 
-
+#HEATHER CALC CHECK
 
 #' Calculate sapflow
 #DG_flow(i) = DG_Qf(i)* 3600/(DG_dT(i) * 4.186)
@@ -97,10 +96,52 @@ for(i in 1:16) {
 	Qf[,i]<- Pin[,i]-Qv[,i]-Qr[,i]
 	FlowC[,i]<-ifelse(Qf[,i]<0,0,(Qf[,i]*3600)/(dT[,i]*4.186))
 	FlowCf[,i]<-ifelse(FlowC[,i]<0|FlowC[,i]>25,NA,FlowC[,i])
+
+  
+ #SABRINA VERSION
+#dummy objects for the "for" loop
+
+Qr<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+Qf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+Qftemp<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+Qffix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
+Flow<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowFix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
+
+#####sensor calculations#####
+for(i in 1:16) {
+  #Qr
+  Qr[,i]<-(C[,i]*KshA[,i])
+  #Qf
+  Qf[,i]<-(Pin[,i]-Qv[,i])/C[,i]
+  #Qftemp
+    #filtering out 0.2*pin
+  Qftemp[,i]<-(ifelse( Qf[,i] < 0.2*Pin[,i], 0, Qf[,i]))
+  #ifelse time, set negatives to zero, may need to filter out infinities 
+  #Qffix
+    #filtering out negatives
+  Qffix[,i]<- (ifelse(Qftemp[,i]<0, 0, Qftemp[,i]))
+  #Flow
+  Flow[,i]<-(Qffix[,i]*3600)/(dT[,i]*4.186)
+  
+  #FlowTemp get rid of Nan?
+  #FlowFix get rid of inf?
+ 
   }
 
 
+### Graphing Flow ### #pray
 
+#time needed for graphing
+  datetable$Time<- (datetable$doy + datetable$hour/24)
+#omit infinities and Nan from Flow
+
+pdf(file="GermanFlowSA.pdf", 10, 5)
+for(i in 1:16)
+  plot (datetable$Time, Flow[,i], xlab= "Time", ylab= Flow,
+        lwd=1, main=paste(names(Flow)[,i]), type = "l")
+
+#Heather Graphs
 for(i in 1:16){
 	jpeg(file=paste0(getwd(),"\\Plots\\FlowC\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
 		plot(seq(1:dim(FlowC)[1]), FlowC[,i], xlab="time", ylab="Flow ", type="b",
