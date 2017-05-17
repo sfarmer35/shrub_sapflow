@@ -1,6 +1,6 @@
 # set wd
 setwd("C:\\Users\\Sabrina\\Google Drive\\Lab\\sapflow_sf\\German")
-3setwd("C:\\Users\\hkropp\\Google Drive\\sapflow_sf\\German")
+#3setwd("C:\\Users\\hkropp\\Google Drive\\sapflow_sf\\German")
 library(plyr)
 #input variables data
 datSA<-read.csv("Area_inputvalues.csv")
@@ -15,6 +15,7 @@ Hour3<-ifelse(floor(hourD$JHM)-hourD$JHM < 0, floor(hourD$JHM) + 0.5, floor(hour
 DOYSA<-ifelse(Hour3 < 5, JDay$JDAY - 1, JDay$JDAY)
 head(JDay)
 unique(Hour)
+
 #isolate a matrix of raw data for the sensors for sensors 1-16
 C<-datSA[5:20]
 B<-datSA[21:36]
@@ -28,10 +29,6 @@ SA<-datSA[85:100]
 datetable<-data.frame(doy=DOYSA,hour=Hour3)
 
 
-
-
-  #these values are now their own "data". What does it mean to be "data" vs "values"?
-  #which do I want them to be?
   
 #set up dummy objects for our for loop
 Ktemp<-list()
@@ -68,14 +65,52 @@ KshA<-KshAtemp[,2:17]
 
 #now do all the sapflow calcs
 
-#####sensor calculations
-for(i in 1:16) {
+#dummy objects for the "for" loop
 
+Qr<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+Qf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+Qftemp<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+Qffix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
+Flow<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowFix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
+
+#####sensor calculations#####
+for(i in 1:16) {
+  #Qr
+  Qr[,i]<-(C[,i]*KshA[,i])
+  #Qf
+  Qf[,i]<-(Pin[,i]-Qv[,i])/C[,i]
+  #Qftemp
+    #filtering out 0.2*pin
+  Qftemp[,i]<-(ifelse( Qf[,i] < 0.2*Pin[,i], 0, Qf[,i]))
+  #ifelse time, set negatives to zero, may need to filter out infinities 
+  #Qffix
+    #filtering out negatives
+  Qffix[,i]<- (ifelse(Qftemp[,i]<0, 0, Qftemp[,i]))
+  #Flow
+  Flow[,i]<-(Qffix[,i]*3600)/(dT[,i]*4.186)
   
+  #FlowTemp get rid of Nan?
+  #FlowFix get rid of inf?
+ 
   }
 
 
+### Graphing Flow ### #pray
 
+#time needed for graphing
+  datetable$Time<- (datetable$doy + datetable$hour/24)
+#omit infinities and Nan from Flow
+
+pdf(file="GermanFlowSA.pdf", 10, 5)
+for(i in 1:16)
+  plot (datetable$Time, Flow[,i], xlab= "Time", ylab= Flow,
+        lwd=1, main=paste(names(Flow)[,i]), type = "l")
+
+# getting the error "Incorrect number of dimensions". Unclear if this is 
+  #due to errors in my code to graph it or because of the Na and infinity 
+  #values. I was trying to graph to figure out what the Flow calculation looked 
+  #like and to see if the na/inf were issues. Stuck. 
 
 
 ##### Heather Old Code #####
@@ -91,6 +126,12 @@ for(i in 1:16) {
 #DG_flow(i) = DG_Qf(i)* 3600/(DG_dT(i) * 4.186)
 
 #if (DG_Qf(i)<0.2*DG_Pin(i) AND  DG_Qf(i)<0) Then
-#DG_Status(i) = STAT_KHI
-#DG_Flow(i) = 0
+  #can use an if else statement " if <20 percent of pin then set to 0, otherwise leave set
+  #to Qf         want to do it in your sensor "for" loop because want it for each shrub
+#DG_Status(i) = STAT_KHI    ignore
+#DG_Flow(i) = 0     
 #Exi
+
+#graph the flow for all 
+#correct for leaf area afterwards
+  #can get transpiration per day and stomatal conductance
