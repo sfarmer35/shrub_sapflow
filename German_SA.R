@@ -6,11 +6,6 @@ library(plyr)
 #input variables data
 datSA<-read.csv("Area_inputvalues.csv")
 
-
-#sabrina: is JDAY correct here or were the timestamp issues in the
-#         low density site
-#these are vectors here, but they are refered to as data frmaes
-#down below. 
 JDay<-data.frame(JDAY=datSA[,3])
 JHM<-datSA[,4]
 
@@ -20,7 +15,7 @@ Hour3<-ifelse(floor(hourD$JHM)-hourD$JHM < 0, floor(hourD$JHM) + 0.5, floor(hour
 #changing DOY to start at 5am
 DOYSA<-ifelse(Hour3 < 5, JDay$JDAY - 1, JDay$JDAY)
 head(JDay)
-unique(Hour)
+unique(Hour3)
 
 JDay$TimePlot<-JDay$JDAY+(Hour3/24)
 
@@ -35,12 +30,6 @@ SA<-datSA[85:100]
 #set up a dataframe of full list of doy and hour
 #to help us later on in joins
 datetable<-data.frame(doy=DOYSA,hour=Hour3)
-
-
-  
-  #Sabrina: I suspect this is R studios label. I don't quite remember 
-  # R studios classification but I suspect data refers to a data.frame
-  # and values refers to a vector
   
 #set up dummy objects for our for loop
 Ktemp<-list()
@@ -80,7 +69,7 @@ KshA<-KshAtemp[,2:17]
   #DG_Qr(i) = C_mv(i) * DG_Ksh(i)
   #DG_Qf(i) = DG_Pin(i) - DG_Qv(i) - DG_Qr(i)
 
-#HEATHER CALC CHECK
+####HEATHER CALC CHECK#####
 
 #' Calculate sapflow
 #DG_flow(i) = DG_Qf(i)* 3600/(DG_dT(i) * 4.186)
@@ -98,48 +87,44 @@ for(i in 1:16) {
 	FlowCf[,i]<-ifelse(FlowC[,i]<0|FlowC[,i]>25,NA,FlowC[,i])
 
   
- #SABRINA VERSION
+ ####SABRINA VERSION###
 #dummy objects for the "for" loop
-
-Qr<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-Qf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-Qftemp<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-Qffix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
-Flow<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-FlowFix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
+#Qr<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+#Qf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+#Qftemp<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+#Qffix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
+#Flow<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+#FlowFix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
 
 #####sensor calculations#####
-for(i in 1:16) {
+#for(i in 1:16) {
   #Qr
-  Qr[,i]<-(C[,i]*KshA[,i])
+#Qr[,i]<-(C[,i]*KshA[,i])
   #Qf
-  Qf[,i]<-(Pin[,i]-Qv[,i])/C[,i]
+#Qf[,i]<-(Pin[,i]-Qv[,i])/C[,i]
   #Qftemp
     #filtering out 0.2*pin
-  Qftemp[,i]<-(ifelse( Qf[,i] < 0.2*Pin[,i], 0, Qf[,i]))
+    #Heather says doesn't fit our data
+  #Qftemp[,i]<-(ifelse( Qf[,i] < 0.2*Pin[,i], 0, Qf[,i]))
   #ifelse time, set negatives to zero, may need to filter out infinities 
   #Qffix
     #filtering out negatives
-  Qffix[,i]<- (ifelse(Qftemp[,i]<0, 0, Qftemp[,i]))
+#Qffix[,i]<- (ifelse(Qf[,i]<0, 0, Qf[,i]))
   #Flow
-  Flow[,i]<-(Qffix[,i]*3600)/(dT[,i]*4.186)
+#Flow[,i]<-(Qffix[,i]*3600)/(dT[,i]*4.186)
   
   #FlowTemp get rid of Nan?
   #FlowFix get rid of inf?
- 
+  #Heather addresses this by saying if greater than 25
   }
 
-
-### Graphing Flow ### #pray
-
+### Sabrina Graphing Flow ### #pray
 #time needed for graphing
-  datetable$Time<- (datetable$doy + datetable$hour/24)
-#omit infinities and Nan from Flow
-
-pdf(file="GermanFlowSA.pdf", 10, 5)
-for(i in 1:16)
-  plot (datetable$Time, Flow[,i], xlab= "Time", ylab= Flow,
-        lwd=1, main=paste(names(Flow)[,i]), type = "l")
+  #datetable$Time<- (datetable$doy + datetable$hour/24)
+#pdf(file="GermanFlowSA.pdf", 10, 5)
+#for(i in 1:16)
+#  plot (datetable$Time, Flow[,i], xlab= "Time", ylab= Flow,
+#        lwd=1, main=paste(names(Flow)[,i]), type = "l")
 
 #Heather Graphs
 for(i in 1:16){
