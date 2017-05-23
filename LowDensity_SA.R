@@ -116,6 +116,8 @@ for(i in 1:16) {
   #now plot 10 days at a time
   #there are now 57 days instead of 48
   daysA$plotid<-c(rep(seq(1,4),each=10),rep(5,8))
+###^I AM CONFUSED WHAT THIS LINE IS DOING ###
+
   #now join plot ID to the JDAY data frame
   
   timestamp<-join(JDay, daysA, by="JDAY", type="left")
