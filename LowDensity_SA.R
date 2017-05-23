@@ -3,9 +3,11 @@ setwd("C:\\Users\\Sabrina\\Google Drive\\Lab\\sapflow_sf\\Low_Density")
 library(plyr)
 
 #input variables data
-datSA<- read.csv("SA_values.csv")
-
-#TIME
+datSA<- read.csv("SA_values1.csv")
+#read.table("SA_values.csv", sep=",", head=TRUE, na.strings=c("NAN"))
+  #reading the data in with this caused issues in how the date format was read
+ 
+#time
 library(lubridate)
 dateLD<-as.Date(datSA$TIMESTAMP_f, "%m/%d/%Y %H:%M")
 datSA$DOY<-yday(dateLD)
@@ -62,7 +64,84 @@ Qv<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
     colnames(Kmin[[i]])<-c("doy",paste0("minKsh",i))  
   }
 
+#add a dataframe to our list with all days and hours that we should
+#have observations for
+Kmin[[17]]<-datetable
+#now recursively join each dataframe in our list
+KshAtemp<-join_all(Kmin, by="doy", type="full")
+#pull out just the Ksh for the sensors
+KshA<-KshAtemp[,2:17]
 
+#DG_Qr(i) = C_mv(i) * DG_Ksh(i)
+#DG_Qf(i) = DG_Pin(i) - DG_Qv(i) - DG_Qr(i)
+
+Qr<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+Qf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowC<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowCf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+#####sensor calculations
+for(i in 1:16) {
+  Qr[,i]<- C[,i]*KshA[,i]
+  Qf[,i]<- Pin[,i]-Qv[,i]-Qr[,i]
+  FlowC[,i]<-ifelse(Qf[,i]<0,0,(Qf[,i]*3600)/(dT[,i]*4.186))
+  FlowCf[,i]<-ifelse(FlowC[,i]<0|FlowC[,i]>25,NA,FlowC[,i])
+}
+#Graphs
+  for(i in 1:16){
+    jpeg(file=paste0(getwd(),"\\Plots\\FlowC\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+    plot(seq(1:dim(FlowC)[1]), FlowC[,i], xlab="time", ylab="Flow ", type="b",
+         main=paste("sensor #", i), pch=19)
+    dev.off()
+  }
+  for(i in 1:16){
+    jpeg(file=paste0(getwd(),"\\Plots\\Qf\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+    plot(seq(1:dim(Qf)[1]), Qf[,i], xlab="time", ylab="Flow ", type="b",
+         main=paste("sensor #", i), pch=19)
+    dev.off()
+  }
+  for(i in 1:16){
+    jpeg(file=paste0(getwd(),"\\Plots\\FlowCfilter\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+    plot(seq(1:dim(FlowCf)[1]), FlowCf[,i], xlab="time", ylab="Flow ", type="b",
+         main=paste("sensor #", i), pch=19)
+    dev.off()
+  }
+  
+  
+  
+  #now break up the code into 2 week increments and use actual time stamp
+  
+  #find out how many days there are
+  daysA<-data.frame(JDAY=unique(JDay$JDAY))
+  daysA$dayid<-seq(1,dim(daysA)[1])
+  #now plot 10 days at a time
+  #there are now 57 days instead of 48
+  daysA$plotid<-c(rep(seq(1,4),each=10),rep(5,8))
+  #now join plot ID to the JDAY data frame
+  
+  timestamp<-join(JDay, daysA, by="JDAY", type="left")
+  
+  for(i in 1:16){
+    
+    jpeg(file=paste0(getwd(),"\\Plots\\Flowsub\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+    par(mfrow=c(5,1))
+    plot(timestamp$TimePlot[timestamp$plotid==1],FlowCf[timestamp$plotid==1,i],
+         xlab="time", ylab="Flow ", type="b",
+         main=paste("sensor #", i), pch=19)
+    plot(timestamp$TimePlot[timestamp$plotid==2],FlowCf[timestamp$plotid==2,i],
+         xlab="time", ylab="Flow ", type="b",
+         main=paste("sensor #", i), pch=19)
+    plot(timestamp$TimePlot[timestamp$plotid==3],FlowCf[timestamp$plotid==3,i],
+         xlab="time", ylab="Flow ", type="b",
+         main=paste("sensor #", i), pch=19)
+    plot(timestamp$TimePlot[timestamp$plotid==4],FlowCf[timestamp$plotid==4,i],
+         xlab="time", ylab="Flow ", type="b",
+         main=paste("sensor #", i), pch=19)
+    plot(timestamp$TimePlot[timestamp$plotid==5],FlowCf[timestamp$plotid==5,i],
+         xlab="time", ylab="Flow ", type="b",
+         main=paste("sensor #", i), pch=19)			
+    
+    dev.off()
+  }
 
 
 

@@ -85,7 +85,7 @@ for(i in 1:16) {
 	Qf[,i]<- Pin[,i]-Qv[,i]-Qr[,i]
 	FlowC[,i]<-ifelse(Qf[,i]<0,0,(Qf[,i]*3600)/(dT[,i]*4.186))
 	FlowCf[,i]<-ifelse(FlowC[,i]<0|FlowC[,i]>25,NA,FlowC[,i])
-
+}
   
  ####SABRINA VERSION###
 #dummy objects for the "for" loop
