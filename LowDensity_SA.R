@@ -4,8 +4,6 @@ library(plyr)
 
 #input variables data
 datSA<- read.csv("SA_values1.csv")
-#read.table("SA_values.csv", sep=",", head=TRUE, na.strings=c("NAN"))
-  #reading the data in with this caused issues in how the date format was read
  
 #time
 library(lubridate)
@@ -15,15 +13,12 @@ datSA$DOY<-yday(dateLD)
 JDay<-data.frame(JDAY=datSA[,99])
 JHM<-datSA[,2]
 
-hourD<-data.frame(JHM=JHM/100)
-Hour3<-ifelse(floor(hourD$JHM)-hourD$JHM < 0, floor(hourD$JHM) + 0.5, floor(hourD$JHM))
-
 #changing DOY to start at 5am
-DOYSA<-ifelse(Hour3 < 5, JDay$JDAY - 1, JDay$JDAY)
+DOYSA<-ifelse(JHM < 5, JDay$JDAY - 1, JDay$JDAY)
 head(JDay)
-unique(Hour3)
+unique(JHM)
 
-JDay$TimePlot<-JDay$JDAY+(Hour3/24)
+JDay$TimePlot<-JDay$JDAY+(JHM/24)
 
 #isolate a matrix of raw data for the sensors for sensors 1-16
 C<-datSA[3:18]
@@ -35,7 +30,7 @@ SA<-datSA[83:98]
 
 #set up a dataframe of full list of doy and hour
 #to help us later on in joins
-datetable<-data.frame(doy=DOYSA,hour=Hour3)
+datetable<-data.frame(doy=DOYSA,hour=JHM)
 
 Ktemp<-list()
 Ktemp2<-list()
@@ -55,7 +50,7 @@ Qv<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
     Kshapp[,i]<-(Pin[,i]-Qv[,i])/C[,i]
     #make a temp dataframe for each sensor and omit the obs
     #with na for each sensor
-    Ktemp[[i]]<-na.omit(data.frame(day=DOYSA, hour=Hour3, Ksh=Kshapp[,i]))
+    Ktemp[[i]]<-na.omit(data.frame(day=DOYSA, hour=JHM, Ksh=Kshapp[,i]))
     # now filter any values that might be negative
     Ktemp2[[i]]<-Ktemp[[i]][which(Ktemp[[i]]$Ksh>0),]
     #grab the minimum for the day
@@ -106,8 +101,6 @@ for(i in 1:16) {
     dev.off()
   }
   
-  
-  
   #now break up the code into 2 week increments and use actual time stamp
   
   #find out how many days there are
@@ -115,8 +108,7 @@ for(i in 1:16) {
   daysA$dayid<-seq(1,dim(daysA)[1])
   #now plot 10 days at a time
   #there are now 57 days instead of 48
-  daysA$plotid<-c(rep(seq(1,4),each=10),rep(5,8))
-###^I AM CONFUSED WHAT THIS LINE IS DOING ###
+daysA$plotid<-c(rep(seq(1,5),each=10),rep(6,7))
 
   #now join plot ID to the JDAY data frame
   
@@ -144,6 +136,3 @@ for(i in 1:16) {
     
     dev.off()
   }
-
-
-
