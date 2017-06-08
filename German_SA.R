@@ -5,6 +5,7 @@ setwd("C:\\Users\\Sabrina\\Google Drive\\Lab\\sapflow_sf\\German")
 library(plyr)
 #input variables data
 datSA<-read.csv("Area_inputvalues.csv")
+datLA<-read.csv("GermanLA.csv")
 
 JDay<-data.frame(JDAY=datSA[,3])
 JHM<-datSA[,4]
@@ -78,14 +79,44 @@ KshA<-KshAtemp[,2:17]
 Qr<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
 Qf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
 FlowC<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-FlowCf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowCf1<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowCf2<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowCf3<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowCf4<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowS<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
+FlowLA1<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowLA2<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowLA3<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowLA4<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+
+Q90<-numeric(0)
+
+
 #####sensor calculations
 for(i in 1:16) {
 	Qr[,i]<- C[,i]*KshA[,i]
 	Qf[,i]<- Pin[,i]-Qv[,i]-Qr[,i]
 	FlowC[,i]<-ifelse(Qf[,i]<0,0,(Qf[,i]*3600)/(dT[,i]*4.186))
-	FlowCf[,i]<-ifelse(FlowC[,i]<0|FlowC[,i]>25,NA,FlowC[,i])
-}
+  Q90[i]<-ifelse(quantile(FlowC[,i], probs=0.9, na.rm=TRUE)>150, 150, 
+                 quantile(FlowC[,i], probs=0.9, na.rm=TRUE))
+	FlowCf1[,i]<-ifelse(FlowC[,i]<0, 0,
+              ifelse(FlowC[,i]>25, NA, FlowC[,i]))
+	FlowLA1[,i]<-(FlowCf1[,i]/datLA$LA[i])
+  #flow in seconds
+  FlowS[,i]<-ifelse(Qf[,i]<0,0,(Qf[,i])/(dT[,i]*4.186))
+  #filter 10 percent pin
+  FlowCf2[,i]<-ifelse(FlowC[,i]<0.10*Pin[,i],0,
+                ifelse(FlowC[,i]>25, NA, FlowC[,i]))
+  FlowLA2[,i]<- FlowCf2[,i]/datLA$LA[i]
+  #filter 15 percent pin
+  FlowCf3[,i]<-ifelse(FlowC[,i]<0.15*Pin[,i],0,
+               ifelse(FlowC[,i]>25, NA, FlowC[,i]))
+  FlowLA3[,i]<- FlowCf3[,i]/datLA$LA[i]
+  #Filter 20 percent pin
+	FlowCf4[,i]<-ifelse(FlowC[,i]<0.20*Pin[,i],0,
+	                    ifelse(FlowC[,i]> Q90[i], NA, FlowC[,i]))
+	FlowLA4[,i]<- FlowCf4[,i]/datLA$LA[i]
+  }
   
  ####SABRINA VERSION###
 #dummy objects for the "for" loop
@@ -118,13 +149,6 @@ for(i in 1:16) {
   #Heather addresses this by saying if greater than 25
   }
 
-### Sabrina Graphing Flow ### #pray
-#time needed for graphing
-  #datetable$Time<- (datetable$doy + datetable$hour/24)
-#pdf(file="GermanFlowSA.pdf", 10, 5)
-#for(i in 1:16)
-#  plot (datetable$Time, Flow[,i], xlab= "Time", ylab= Flow,
-#        lwd=1, main=paste(names(Flow)[,i]), type = "l")
 
 #Heather Graphs
 for(i in 1:16){
@@ -141,10 +165,36 @@ for(i in 1:16){
 	}
 for(i in 1:16){
 	jpeg(file=paste0(getwd(),"\\Plots\\FlowCfilter\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
-		plot(seq(1:dim(FlowCf)[1]), FlowCf[,i], xlab="time", ylab="Flow ", type="b",
+		plot(seq(1:dim(FlowCf1)[1]), FlowCf1[,i], xlab="time", ylab="Flow ", type="b",
 			main=paste("sensor #", i), pch=19)
 	dev.off()
 	}
+
+###Filter Graphs###
+for(i in 1:16){
+  jpeg(file=paste0(getwd(),"\\Plots\\Filters\\Zero\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  plot(seq(1:dim(FlowLA1)[1]), FlowLA1[,i], xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+for(i in 1:16){
+  jpeg(file=paste0(getwd(),"\\Plots\\Filters\\10Pin\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  plot(seq(1:dim(FlowLA2)[1]), FlowLA2[,i], xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+for(i in 1:16){
+  jpeg(file=paste0(getwd(),"\\Plots\\Filters\\15Pin\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  plot(seq(1:dim(FlowLA3)[1]), FlowLA3[,i], xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+for(i in 1:16){
+  jpeg(file=paste0(getwd(),"\\Plots\\Filters\\20Pin\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  plot(seq(1:dim(FlowLA4)[1]), FlowLA4[,i], xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
 
 	
 	
@@ -164,21 +214,136 @@ for(i in 1:16){
 
 		jpeg(file=paste0(getwd(),"\\Plots\\Flowsub\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
 		par(mfrow=c(5,1))
-		plot(timestamp$TimePlot[timestamp$plotid==1],FlowCf[timestamp$plotid==1,i],
+		plot(timestamp$TimePlot[timestamp$plotid==1],FlowCf1[timestamp$plotid==1,i],
 		xlab="time", ylab="Flow ", type="b",
 			main=paste("sensor #", i), pch=19)
-		plot(timestamp$TimePlot[timestamp$plotid==2],FlowCf[timestamp$plotid==2,i],
+		plot(timestamp$TimePlot[timestamp$plotid==2],FlowCf1[timestamp$plotid==2,i],
 		xlab="time", ylab="Flow ", type="b",
 			main=paste("sensor #", i), pch=19)
-		plot(timestamp$TimePlot[timestamp$plotid==3],FlowCf[timestamp$plotid==3,i],
+		plot(timestamp$TimePlot[timestamp$plotid==3],FlowCf1[timestamp$plotid==3,i],
 		xlab="time", ylab="Flow ", type="b",
 			main=paste("sensor #", i), pch=19)
-		plot(timestamp$TimePlot[timestamp$plotid==4],FlowCf[timestamp$plotid==4,i],
+		plot(timestamp$TimePlot[timestamp$plotid==4],FlowCf1[timestamp$plotid==4,i],
 		xlab="time", ylab="Flow ", type="b",
 			main=paste("sensor #", i), pch=19)
-		plot(timestamp$TimePlot[timestamp$plotid==5],FlowCf[timestamp$plotid==5,i],
+		plot(timestamp$TimePlot[timestamp$plotid==5],FlowCf1[timestamp$plotid==5,i],
 		xlab="time", ylab="Flow ", type="b",
 			main=paste("sensor #", i), pch=19)			
 	
 	dev.off()
 }
+
+### graphing subsets of filters ###
+#Zero
+for(i in 1:16){
+  
+  jpeg(file=paste0(getwd(),"\\Plots\\Filters\\subZero\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  par(mfrow=c(5,1))
+  plot(timestamp$TimePlot[timestamp$plotid==1],FlowLA1[timestamp$plotid==1,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==2],FlowLA1[timestamp$plotid==2,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==3],FlowLA1[timestamp$plotid==3,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==4],FlowLA1[timestamp$plotid==4,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==5],FlowLA1[timestamp$plotid==5,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)			
+  
+  dev.off()
+}
+#10 percent pin
+for(i in 1:16){
+  
+  jpeg(file=paste0(getwd(),"\\Plots\\Filters\\sub10Pin\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  par(mfrow=c(5,1))
+  plot(timestamp$TimePlot[timestamp$plotid==1],FlowLA2[timestamp$plotid==1,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==2],FlowLA2[timestamp$plotid==2,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==3],FlowLA2[timestamp$plotid==3,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==4],FlowLA2[timestamp$plotid==4,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==5],FlowLA2[timestamp$plotid==5,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)  		
+  
+  dev.off()
+}
+
+#15 percent pin
+for(i in 1:16){
+  
+  jpeg(file=paste0(getwd(),"\\Plots\\Filters\\sub15Pin\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  par(mfrow=c(5,1))
+  plot(timestamp$TimePlot[timestamp$plotid==1],FlowLA3[timestamp$plotid==1,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==2],FlowLA3[timestamp$plotid==2,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==3],FlowLA3[timestamp$plotid==3,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==4],FlowLA3[timestamp$plotid==4,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==5],FlowLA3[timestamp$plotid==5,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)  		
+  
+  dev.off()
+}
+
+#20 percent pin
+for(i in 1:16){
+  
+  jpeg(file=paste0(getwd(),"\\Plots\\Filters\\sub20Pin\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  par(mfrow=c(5,1))
+  plot(timestamp$TimePlot[timestamp$plotid==1],FlowLA4[timestamp$plotid==1,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==2],FlowLA4[timestamp$plotid==2,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==3],FlowLA4[timestamp$plotid==3,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==4],FlowLA4[timestamp$plotid==4,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==5],FlowLA4[timestamp$plotid==5,i],
+       xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)    	
+  
+  dev.off()
+}
+
+
+####STOMATAL CONDUCTANCE####
+datMet<-read.csv("German_met.csv")
+datP<-read.csv("Pressure.csv")
+
+#time
+library(lubridate)
+dateG<-as.Date(datMet$Date.Time, "%d.%m.%Y %H:%M")
+datMet$DOY<-yday(dateG)
+datMet$JHM<-
+  
+  
+#vapor pressure defecit
+T<-datMet[2]  
+RH<-datMet[3]
+
+e.sat<- 0.611*exp((17.502*T)/(T+240.97))
+vpD<- e.sat*((RH/100)*e.sat)
