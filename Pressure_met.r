@@ -1,3 +1,10 @@
+############################################################
+##### Reads and organizes pressure data from ###############
+##### the Cherskii airport. Converts to KPa  ###############
+############################################################
+
+
+
 setwd("c:\\Users\\hkropp\\Google Drive\\sapflow_sf\\met")
 datR<-read.table("airport.csv.csv", sep=";", header=TRUE)
 
