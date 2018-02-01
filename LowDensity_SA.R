@@ -22,12 +22,12 @@ unique(JHM)
 JDay$TimePlot<-JDay$JDAY+(JHM/24)
 
 #isolate a matrix of raw data for the sensors for sensors 1-16
-C<-datSA[3:18]
-B<-datSA[19:34]
-A<-datSA[35:50]
-Pin<-datSA[51:66]
-dT<-datSA[67:82]
-SA<-datSA[83:98]
+C<-datSA[,3:18]
+B<-datSA[,19:34]
+A<-datSA[,35:50]
+Pin<-datSA[,51:66]
+dT<-datSA[,67:82]
+SA<-datSA[,83:98]
 
 #set up a dataframe of full list of doy and hour
 #to help us later on in joins
@@ -74,7 +74,7 @@ KshA<-KshAtemp[,2:17]
 Qr<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
 Qf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
 FlowC<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-FLowS<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
+FlowS<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
 FlowCf1<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
 FlowLA1<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
 FlowCf2<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
@@ -91,6 +91,7 @@ Q90<-numeric(0)
 
 
 #####sensor calculations
+#LA in meters
 for(i in 1:16) {
   Qr[,i]<- C[,i]*KshA[,i]
   Qf[,i]<- Pin[,i]-Qv[,i]-Qr[,i]
@@ -101,8 +102,8 @@ for(i in 1:16) {
                ifelse(FlowC[,i]>25, NA, FlowC[,i]))
   FlowLA1[,i]<-FlowCf1[,i]/datLA$LA[i]
   #10 percent pin
-  FlowCf2[,i]<-ifelse(FlowC[,i]< .10*Pin[,i], 0,
-                      ifelse(FlowC[,i]>25, NA, FlowC[,i]))
+  FlowCf2[,i]<-ifelse(FlowC[,i]< .10*Pin[,i], 0, FlowC[,i])
+                      #ifelse(FlowC[,i]>25, NA, FlowC[,i]))
   FlowLA2[,i]<-FlowCf2[,i]/datLA$LA[i]
   #15 percent pin
   FlowCf3[,i]<-ifelse(FlowC[,i]< .15*Pin[,i], 0,
@@ -121,21 +122,25 @@ for(i in 1:16) {
   FlowLA5[,i]<-FlowCf5[,i]/datLA$LA[i]
 }
 
+#seconds
+ for(i in 1:16){
+   FlowS[,i]<- FlowLA5[,i]/3600
+ }
+
 #Graphs
-  #sensor 16 is entirely NA, do not graph
-  for(i in 1:15){
+   for(i in 1:16){
     jpeg(file=paste0(getwd(),"\\Plots\\FlowC\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
     plot(seq(1:dim(FlowC)[1]), FlowC[,i], xlab="time", ylab="Flow ", type="b",
          main=paste("sensor #", i), pch=19)
     dev.off()
   }
-  for(i in 1:15){
+  for(i in 1:16){
     jpeg(file=paste0(getwd(),"\\Plots\\Qf\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
     plot(seq(1:dim(Qf)[1]), Qf[,i], xlab="time", ylab="Flow ", type="b",
          main=paste("sensor #", i), pch=19)
     dev.off()
   }
-  for(i in 1:15){
+  for(i in 1:16){
     jpeg(file=paste0(getwd(),"\\Plots\\FlowCfilter\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
     plot(seq(1:dim(FlowCf)[1]), FlowCf1[,i], xlab="time", ylab="Flow ", type="b",
          main=paste("sensor #", i), pch=19)
@@ -155,7 +160,7 @@ daysA$plotid<-c(rep(seq(1,5),each=10),rep(6,7))
   
   timestamp<-join(JDay, daysA, by="JDAY", type="left")
   
-  for(i in 1:15){
+  for(i in 1:16){
     
     jpeg(file=paste0(getwd(),"\\Plots\\Flowsub\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
     par(mfrow=c(5,1))
@@ -180,7 +185,7 @@ daysA$plotid<-c(rep(seq(1,5),each=10),rep(6,7))
 
 #Filter Graphs_subplots
 #subZero
-for(i in 1:15){
+for(i in 1:16){
   
   jpeg(file=paste0(getwd(),"\\Plots\\Filters\\subZero\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
   par(mfrow=c(5,1))
@@ -203,7 +208,7 @@ for(i in 1:15){
   dev.off()
 }
 #sub 10 percent of pin
-for(i in 1:15){
+for(i in 1:16){
   
   jpeg(file=paste0(getwd(),"\\Plots\\Filters\\sub10Pin\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
   par(mfrow=c(5,1))
@@ -227,7 +232,7 @@ for(i in 1:15){
 }
 
 #sub 15 percent of pin
-for(i in 1:15){
+for(i in 1:16){
   
   jpeg(file=paste0(getwd(),"\\Plots\\Filters\\sub15Pin\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
   par(mfrow=c(5,1))
@@ -251,7 +256,7 @@ for(i in 1:15){
 }
 
 #sub 20 percent of pin
-for(i in 1:15){
+for(i in 1:16){
   
   jpeg(file=paste0(getwd(),"\\Plots\\Filters\\sub20Pin\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
   par(mfrow=c(5,1))
@@ -275,7 +280,7 @@ for(i in 1:15){
 }
 
 #sub 20 percent of pin and Q90 max
-for(i in 1:15){
+for(i in 1:16){
   
   jpeg(file=paste0(getwd(),"\\Plots\\Filters\\sub20PinQ90\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
   par(mfrow=c(5,1))
@@ -297,4 +302,87 @@ for(i in 1:15){
   
   dev.off()
 }
+
+####STOMATAL CONDUCTANCE####
+datMet<- read.csv("LowD_met.csv")
+datP<- read.csv("Pressure.csv")
+
+#date fixes because logger issues
+dates<- data.frame(doy=datetable$doy, hour=datetable$hour)
+dates$hourO<- floor(dates$hour)
+dates$min<- dates$hour- dates$hourO
+dates$minf1<- ifelse(dates$min>0.7, 1, dates$min)
+dates$minf2<- ifelse(dates$minf1>0.2&dates$minf1<0.3, 0.50, dates$minf1)
+dates$hourfix<- dates$hourO + dates$minf2
+  
+  
+#join 
+El.all<- data.frame(FlowS[,1:16], doy= dates$doy, hour=dates$hourfix)
+dat.most<- join(El.all, datMet, by=c("doy","hour"), type="left")
+dat.all<- join(dat.most, datP, by=c("doy"), type= "left")
+
+
+#vapor pressure deficit
+  #making the functions
+e.sat<- function(Temp) { 0.611*exp((17.502*Temp)/(Temp+240.97)) }
+vpD<- function(esat,RH) {esat*((RH/100)*esat)}
+
+#calculations
+satG<- e.sat(dat.all$temp)
+dat.all$D<-vpD(satG, dat.all$RH)
+
+#Kg 
+kg.func<- function(Temp) {115.8 + (0.423*Temp)}
+dat.all$Kg<- kg.func(dat.all$temp)
+
+#conversion of transpiration to kg m-2 s-1 from g
+El.kg<-dat.all[,1:16]*(1/1000)
+
+#stomatal conductance (gs)
+gs.func<- function (Kg.coeff, Elkg, Vpd, P)
+{((Kg.coeff*Elkg)/ Vpd)*P}
+Gs.raw<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
+for (i in 1:16) {
+  Gs.raw<-gs.func(dat.all$Kg, El.kg, dat.all$D, dat.all$PdayGap)
+}
+
+#conversion to mmol
+mol.func<-function(Gs, temp, P) {Gs*0.446* (273/(temp+273))*(P/101.3)}
+Gs.mol<- matrix(rep(NA, dim(Gs.raw)[1]*16), ncol=16)
+Gs.mmol<-matrix(rep(NA, dim(Gs.raw)[1]*16),ncol=16)
+for (i in 1:16) {
+  Gs.mol<-mol.func(Gs.raw, dat.all$temp, dat.all$PdayGap)
+  Gs.mmol<-Gs.mol*1000
+}
+#Gs.mmol in mmol m-2 s-2
+
+
+
+#graphing stomatal conductance (mmol)
+
+for(i in 1:16){
+  
+  jpeg(file=paste0(getwd(),"\\Plots\\StomatalConductance\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  par(mfrow=c(5,1))
+  plot(timestamp$TimePlot[timestamp$plotid==1],Gs.mmol[timestamp$plotid==1,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==2],Gs.mmol[timestamp$plotid==2,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==3],Gs.mmol[timestamp$plotid==3,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==4],Gs.mmol[timestamp$plotid==4,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==5],Gs.mmol[timestamp$plotid==5,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)    	
+  
+  dev.off()
+}
+
+
+
 

@@ -21,12 +21,12 @@ unique(Hour3)
 JDay$TimePlot<-JDay$JDAY+(Hour3/24)
 
 #isolate a matrix of raw data for the sensors for sensors 1-16
-C<-datSA[5:20]
-B<-datSA[21:36]
-A<-datSA[37:52]
-Pin<-datSA[53:68]
-dT<-datSA[69:84]
-SA<-datSA[85:100]
+C<-datSA[,5:20]
+B<-datSA[,21:36]
+A<-datSA[,37:52]
+Pin<-datSA[,53:68]
+dT<-datSA[,69:84]
+SA<-datSA[,85:100]
 
 #set up a dataframe of full list of doy and hour
 #to help us later on in joins
@@ -70,8 +70,6 @@ KshA<-KshAtemp[,2:17]
   #DG_Qr(i) = C_mv(i) * DG_Ksh(i)
   #DG_Qf(i) = DG_Pin(i) - DG_Qv(i) - DG_Qr(i)
 
-####HEATHER CALC CHECK#####
-
 #' Calculate sapflow
 #DG_flow(i) = DG_Qf(i)* 3600/(DG_dT(i) * 4.186)
 
@@ -102,9 +100,7 @@ for(i in 1:16) {
 	FlowCf1[,i]<-ifelse(FlowC[,i]<0, 0,
               ifelse(FlowC[,i]>25, NA, FlowC[,i]))
 	FlowLA1[,i]<-(FlowCf1[,i]/datLA$LA[i])
-  #flow in seconds
-  FlowS[,i]<-ifelse(Qf[,i]<0,0,(Qf[,i])/(dT[,i]*4.186))
-  #filter 10 percent pin
+    #filter 10 percent pin
   FlowCf2[,i]<-ifelse(FlowC[,i]<0.10*Pin[,i],0,
                 ifelse(FlowC[,i]>25, NA, FlowC[,i]))
   FlowLA2[,i]<- FlowCf2[,i]/datLA$LA[i]
@@ -116,40 +112,11 @@ for(i in 1:16) {
 	FlowCf4[,i]<-ifelse(FlowC[,i]<0.20*Pin[,i],0,
 	                    ifelse(FlowC[,i]> Q90[i], NA, FlowC[,i]))
 	FlowLA4[,i]<- FlowCf4[,i]/datLA$LA[i]
-  }
+
+  #flow in seconds
+  FlowS[,i]<- FlowLA4[,i]/3600  
+}
   
- ####SABRINA VERSION###
-#dummy objects for the "for" loop
-#Qr<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-#Qf<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-#Qftemp<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-#Qffix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
-#Flow<-matrix(rep(NA,dim(SA)[1]*16), ncol=16)
-#FlowFix<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
-
-#####sensor calculations#####
-#for(i in 1:16) {
-  #Qr
-#Qr[,i]<-(C[,i]*KshA[,i])
-  #Qf
-#Qf[,i]<-(Pin[,i]-Qv[,i])/C[,i]
-  #Qftemp
-    #filtering out 0.2*pin
-    #Heather says doesn't fit our data
-  #Qftemp[,i]<-(ifelse( Qf[,i] < 0.2*Pin[,i], 0, Qf[,i]))
-  #ifelse time, set negatives to zero, may need to filter out infinities 
-  #Qffix
-    #filtering out negatives
-#Qffix[,i]<- (ifelse(Qf[,i]<0, 0, Qf[,i]))
-  #Flow
-#Flow[,i]<-(Qffix[,i]*3600)/(dT[,i]*4.186)
-  
-  #FlowTemp get rid of Nan?
-  #FlowFix get rid of inf?
-  #Heather addresses this by saying if greater than 25
-  }
-
-
 #Heather Graphs
 for(i in 1:16){
 	jpeg(file=paste0(getwd(),"\\Plots\\FlowC\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
@@ -195,8 +162,6 @@ for(i in 1:16){
        main=paste("sensor #", i), pch=19)
   dev.off()
 }
-
-	
 	
 #now break up the code into 2 week increments and use actual time stamp
 
@@ -329,7 +294,6 @@ for(i in 1:16){
   dev.off()
 }
 
-
 ####STOMATAL CONDUCTANCE####
 datMet<-read.csv("German_met.csv")
 datP<-read.csv("Pressure.csv")
@@ -338,12 +302,73 @@ datP<-read.csv("Pressure.csv")
 library(lubridate)
 dateG<-as.Date(datMet$Date.Time, "%d.%m.%Y %H:%M")
 datMet$DOY<-yday(dateG)
-datMet$JHM<-
-  
-  
-#vapor pressure defecit
-T<-datMet[2]  
-RH<-datMet[3]
 
-e.sat<- 0.611*exp((17.502*T)/(T+240.97))
-vpD<- e.sat*((RH/100)*e.sat)
+#joins
+datMet$DHM<-datMet$DOY+(datMet$HM/24)
+E.all<-data.frame(FlowS[,1:16], DOY=datetable$doy, HM=datetable$hour)
+dat.most<- join(E.all, datMet, by=c("DOY", "HM"), type="left")
+dat.all<- join(dat.most, datP, by=c("DOY"), type="left")
+
+#vapor pressure defecit
+  #making functions
+e.sat<- function(Temp) { 0.611*exp((17.502*Temp)/(Temp+240.97)) }
+vpD<- function(esat,RH) {esat*((RH/100)*esat)}
+  #calculations
+satG<- e.sat(dat.all$temp)
+dat.all$D<-vpD(satG, dat.all$RH)
+
+#Kg 
+kg.func<- function(Temp) {115.8 + (0.423*Temp)}
+dat.all$Kg<- kg.func(dat.all$temp)
+
+#conversion of transpiration to kg m-2 s-1 from g
+El.kg<-dat.all[,1:16]*(1/1000)
+
+#stomatal conductance (gs)
+gs.func<- function (Kg.coeff, Elkg, Vpd, P)
+{((Kg.coeff*Elkg)/ Vpd)*P}
+Gs.raw<-matrix(rep(NA, dim(SA)[1]*16), ncol=16)
+for (i in 1:16) {
+  Gs.raw<-gs.func(dat.all$Kg, El.kg, dat.all$D, dat.all$PdayGap)
+}
+
+#conversion to mmol
+mol.func<-function(Gs, temp, P) {Gs*0.446* (273/(temp+273))*(P/101.3)}
+Gs.mol<- matrix(rep(NA, dim(Gs.raw)[1]*16), ncol=16)
+Gs.mmol<-matrix(rep(NA, dim(Gs.raw)[1]*16),ncol=16)
+for (i in 1:16) {
+  Gs.mol<-mol.func(Gs.raw, dat.all$temp, dat.all$PdayGap)
+  Gs.mmol<-Gs.mol*1000
+}
+
+#graphing stomatal conductance (mmol)
+
+for(i in 1:16){
+  
+  jpeg(file=paste0(getwd(),"\\Plots\\StomatalConductance\\sensor", i, ".jpeg"), width=1500, height=1000, units="px")
+  par(mfrow=c(5,1))
+  plot(timestamp$TimePlot[timestamp$plotid==1],Gs.mmol[timestamp$plotid==1,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==2],Gs.mmol[timestamp$plotid==2,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==3],Gs.mmol[timestamp$plotid==3,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==4],Gs.mmol[timestamp$plotid==4,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)
+  plot(timestamp$TimePlot[timestamp$plotid==5],Gs.mmol[timestamp$plotid==5,i],
+       xlab="time", ylab="Gs ", type="b",
+       main=paste("sensor #", i), pch=19)  		
+  
+  dev.off()
+}
+
+#seperate by species: 1-8 salix, 9-16 alnus
+salix<- data.frame(gs=as.vector(Gs.mmol[,1:8]), DOY=rep(dat.all$DOY, times=8), Hour=rep(dat.all$HM, times=8))
+salix1<-aggregate(salix$gs, by=list(salix$DOY, salix$Hour), FUN="mean", na.action=na.omit)
+s.time<-salix1$Group.1+(salix1$Group.2/24)
+plot(s.time, salix1$x, pch=19)
+
