@@ -19,8 +19,6 @@ plotcheck<-1
 library(plyr)
 library(lubridate)
 #######################################################################################
-#plots on and off?
-#######################################################################################
 
 #German Files
 datG<-read.csv(paste0(datadir, "\\German_components.csv"))
@@ -280,7 +278,7 @@ QfG<-matrix(rep(NA,dim(SAG)[1]*16), ncol=16)
 FlowUCG<-matrix(rep(NA,dim(SAG)[1]*16), ncol=16)
 FlowCG<-matrix(rep(NA,dim(SAG)[1]*16), ncol=16)
 FlowLAG<-matrix(rep(NA,dim(SAG)[1]*16), ncol=16)
-FlowSG<-matrix(rep(NA,dim(SAG)[1]*16), ncol=16)
+Pin20G<-matrix(rep(NA,dim(SAG)[1]*16), ncol=16)
 Q90G<-numeric(0)
 
 QrL<-matrix(rep(NA,dim(SAL)[1]*16), ncol=16)
@@ -288,44 +286,55 @@ QfL<-matrix(rep(NA,dim(SAL)[1]*16), ncol=16)
 FlowUCL<-matrix(rep(NA,dim(SAL)[1]*16), ncol=16)
 FlowCL<-matrix(rep(NA,dim(SAL)[1]*16), ncol=16)
 FlowLAL<-matrix(rep(NA,dim(SAL)[1]*16), ncol=16)
-FlowSL<-matrix(rep(NA,dim(SAL)[1]*16), ncol=16)
 Q90L<-numeric(0)
 
 #####sensor calculations######
 for(i in 1:16) {
+  #german
   QrG[,i]<- CG[,i]*KshAG[,i]
   QfG[,i]<- PinG[,i]-QvG[,i]-QrG[,i]
-  FlowUCG[,i]<-ifelse(QfG[,i]<0,0,(QfG[,i]*3600)/(dTG[,i]*4.186))
-  #for sensors with many spikes setting a limit for quantile @ 150
-  Q90G[i]<-ifelse(quantile(FlowUCG[,i], probs=0.9, na.rm=TRUE)>150, 150, 
+  Pin20G[,i]<- PinG[,i]*0.2
+  FlowUCG[,i]<-ifelse(QfG[,i]<0,NA,
+                      ifelse(dTG[,i]<0, NA, (QfG[,i])/(dTG[,i]*4.186)))
+       #for sensors with many spikes setting a limit for quantile @ 0.05
+  Q90G[i]<-ifelse(quantile(FlowUCG[,i], probs=0.9, na.rm=TRUE)>0.05, 0.05, 
                  quantile(FlowUCG[,i], probs=0.9, na.rm=TRUE))
-   #Filter 20 percent pin
-  FlowCG[,i]<-ifelse(FlowUCG[,i]<0.20*PinG[,i],0,
+       #Filter 20 percent pin
+  FlowCG[,i]<-ifelse(QfG[,i]<0.20*PinG[,i]& dTG[,i] <0.75 ,0,
                       ifelse(FlowUCG[,i]> Q90G[i], NA, FlowUCG[,i]))
   FlowLAG[,i]<- FlowCG[,i]/datg.LA$LA[i]
-  
-  #seconds for stomatal conductance
-  FlowSG[,i]<- FlowLAG[,i]/3600
-  
+  #lowdensity  
   QrL[,i]<- CL[,i]*KshAL[,i]
   QfL[,i]<- PinL[,i]-QvL[,i]-QrL[,i]
-  FlowUCL[,i]<-ifelse(QfL[,i]<0,0,(QfL[,i]*3600)/(dTL[,i]*4.186))
-  
-  #for sensors with many spikes setting a limit for quantile @ 150
-  Q90L[i]<-ifelse(quantile(FlowUCL[,i], probs=0.9, na.rm=TRUE)>150, 150, 
+  FlowUCL[,i]<-ifelse(QfL[,i]<0,NA,
+                      ifelse(dTL[,i]<0, NA, (QfL[,i])/(dTL[,i]*4.186)))
+        #for sensors with many spikes setting a limit for quantile @ 0.05
+  Q90L[i]<-ifelse(quantile(FlowUCL[,i], probs=0.9, na.rm=TRUE)>0.05, 0.05, 
                  quantile(FlowUCL[,i], probs=0.9, na.rm=TRUE))
-  #Filter 20 percent pin
-  FlowCL[,i]<-ifelse(FlowUCL[,i]<0.20*PinL[,i],0,
+         #Filter 20 percent pin
+  FlowCL[,i]<-ifelse(QfL[,i] < 0.20 * PinL[,i] & dTL[,i] < 0.75, 0,
                     ifelse(FlowUCL[,i]> Q90L[i], NA, FlowUCL[,i]))
   FlowLAL[,i]<- FlowCL[,i]/datg.LA$LA[i]
-  #seconds for stomatal conductance
-  FlowSL[,i]<- FlowLAL[,i]/3600
-    
   }
 
 if(plotcheck==1){
   
 #Graphs
+for(i in 1:16){
+  jpeg(file=paste0(plotdir, "\\UncorrectedFlow\\German\\sensor", i, ".jpeg"), 
+       width=1500, height=1000, units="px")
+  plot(seq(1:dim(FlowUCG)[1]), FlowUCG[,i], xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+for(i in 1:16){
+  jpeg(file=paste0(plotdir, "\\UncorrectedFlow\\LD\\sensor", i, ".jpeg"), 
+       width=1500, height=1000, units="px")
+  plot(seq(1:dim(FlowUCL)[1]), FlowUCL[,i], xlab="time", ylab="Flow ", type="b",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}  
+  
 for(i in 1:16){
   jpeg(file=paste0(plotdir, "\\Flow\\German\\sensor", i, ".jpeg"), 
        width=1500, height=1000, units="px")
@@ -356,6 +365,7 @@ for(i in 1:16){
 }
 }
 
+
 ##############################  STOMATAL CONDUCTANCE ##############################
 
 #date adjustments
@@ -363,7 +373,7 @@ dateG<-as.Date(datg.Met$Date.Time, "%d.%m.%Y %H:%M")
 datg.Met$DOY<-yday(dateG)
 
   #ld logger issues
-datesL<- data.frame(doy=datetable$doy, hour=datetable$hour)
+datesL<- data.frame(doy=datetableL$doy, hour=datetableL$hour)
 datesL$hourO<- floor(datesL$hour)
 datesL$min<- datesL$hour- datesL$hourO
 datesL$minf1<- ifelse(datesL$min>0.7, 1, datesL$min)
@@ -372,20 +382,20 @@ datesL$hourfix<- datesL$hourO + datesL$minf2
 
 #joins
 datg.Met$DHM<-datg.Met$DOY+(datg.Met$HM/24)
-E.allG<-data.frame(FlowSG[,1:16], DOY=datetableG$doy, HM=datetableG$hour)
+E.allG<-data.frame(FlowLAG[,1:16], DOY=datetableG$doy, HM=datetableG$hour)
 dat.mostG<- join(E.allG, datg.Met, by=c("DOY", "HM"), type="left")
 dat.allG<- join(dat.mostG, datP, by=c("DOY"), type="left")
-  #re-made flow in seconds 
-El.allL<- data.frame(FlowSL[,1:16], doy= datesL$doy, hour=datesL$hourfix)
+  
+El.allL<- data.frame(FlowLAL[,1:16], doy= datesL$doy, hour=datesL$hourfix)
 dat.mostL<- join(El.allL, datld.Met, by=c("doy","hour"), type="left")
-dat.allL<- join(dat.mostL, datP, by=c("doy"), type= "left")
-#something is going wrong in this last join
-
+datPL<-datP
+colnames(datPL)<- c("doy", "year", "Pkpa", "PdayGap")
+dat.allL<- join(dat.mostL, datPL, by=c("doy"), type= "left")
 
 #vapor pressure defecit
 #making functions
 e.sat<- function(Temp) { 0.611*exp((17.502*Temp)/(Temp+240.97)) }
-vpD<- function(esat,RH) {esat*((RH/100)*esat)}
+vpD<- function(esat,RH) {esat-((RH/100)*esat)}
 
 #calculations
 satG<- e.sat(dat.allG$temp)
@@ -393,6 +403,91 @@ dat.allG$D<-vpD(satG, dat.allG$RH)
 
 satL<- e.sat(dat.allL$temp)
 dat.allL$D<-vpD(satL, dat.allL$RH)
+
+### HISTORECIS CHECK ####
+
+if (plotcheck ==1) {
+for(i in 1:16){
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\t0\\sensor", i, ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(dat.allG$D, dat.allG[,i],  xlab="vpd", ylab="flow ", type="p",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+
+for(i in 1:16){
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\LD\\t0\\sensor", i, ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(dat.allL$D, dat.allL[,i],  xlab="vpd", ylab="flow ", type="p",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+
+#day 187
+for(i in 1:16){
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\day187\\sensor", i, ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(dat.allG$D[dat.allG$DOY==187], dat.allG[dat.allG$DOY==187,i],  xlab="vpd", ylab="flow ", type="p",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+for(i in 1:16){
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\LD\\day187\\sensor", i, ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(dat.allL$D[dat.allL$doy==187], dat.allL[dat.allL$doy==187,i],  xlab="vpd", ylab="flow ", type="p",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+
+#day 197
+for(i in 1:16){
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\day197\\sensor", i, ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(dat.allG$D[dat.allG$DOY==197], dat.allG[dat.allG$DOY==197,i],  xlab="vpd", ylab="flow ", type="p",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+for(i in 1:16){
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\LD\\day197\\sensor", i, ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(dat.allL$D[dat.allL$doy==197], dat.allL[dat.allL$doy==197,i],  xlab="vpd", ylab="flow ", type="p",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+
+#day 207
+for(i in 1:16){
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\day207\\sensor", i, ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(dat.allG$D[dat.allG$DOY==207], dat.allG[dat.allG$DOY==207,i],  xlab="vpd", ylab="flow ", type="p",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+for(i in 1:16){
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\LD\\day207\\sensor", i, ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(dat.allL$D[dat.allL$doy==207], dat.allL[dat.allL$doy==207,i],  xlab="vpd", ylab="flow ", type="p",
+       main=paste("sensor #", i), pch=19)
+  dev.off()
+}
+}
+
+datHG<-dat.allG
+datHG$hour.m30<- datHG$HM- 0.5
+datHG$hour.m60<- datHG$HM - 1
+vpdG1<- data.frame(hour.m30=dat.allG$HM, vpd.30= dat.allG$D, DOY= dat.allG$DOY)
+vpdG2<- data.frame(hour.m60=dat.allG$HM, vpd.60= dat.allG$D, DOY= dat.allG$DOY)
+
+datHG<- join(datHG, vpdG1, by= c("hour.m30", "DOY"), type= "left")
+datHG<- join(datHG, vpdG2, by= c("hour.m60", "DOY"), type= "left")
+
+#seperate by species: 1-8 salix, 9-16 alnus 
+datHG.s<-data.frame(HM= rep(datHG$HM, times=8), vpd= rep(datHG$D, times= 8),
+                    vpd.30= rep(datHG$vpd.30, times=8),  vpd.60= rep(datHG$vpd.60, times=8),
+                    flow=as.vector(data.matrix(datHG[,1:8])))
+datHG.s$flowc<-ifelse(datHG.s$flow==0, NA, datHG.s$flow)
+plot(datHG.s$vpd, datHG.s$flowc)
+dev.off()
 
 #Kg 
 kg.func<- function(Temp) {115.8 + (0.423*Temp)}
