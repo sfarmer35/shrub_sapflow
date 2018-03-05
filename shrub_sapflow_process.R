@@ -10,7 +10,7 @@ plotdir<-"z:\\student_research\\farmer\\diagPlots"
 ########################################################################################
 #turn on plotting
 #1 = make plots, 0 = don't make plots
-plotcheck<-1
+plotcheck<-0
 
 ########################################################################################
 #output datG files
@@ -547,9 +547,9 @@ alderHH<-aggregate(datHG.a$flowc, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean
                      "na.omit", na.rm= TRUE)
 alderV<-aggregate(datHG.a$vpd, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
                      "na.omit", na.rm= TRUE)
-alderV30<-aggregate(datHG.a$vpd, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
+alderV30<-aggregate(datHG.a$vpd.30, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
           "na.omit", na.rm= TRUE)
-alderV60<-aggregate(datHG.a$vpd, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
+alderV60<-aggregate(datHG.a$vpd.60, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
           "na.omit", na.rm= TRUE)
 colnames(alderHH)<- c("HM", "DOY", "flowc")
 colnames(alderV)<- c("HM", "DOY", "VPD")
@@ -685,6 +685,150 @@ if (plotcheck==1){
   dev.off()
 }
 #vpd 60
+if (plotcheck==1){
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\AlnusDayGroup1_60", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.05), xlab="VPD", ylab= "Flow")
+  for(i in 1:10){
+    points(alderV60$VPD[alderV60$DOY==alderday$DOY[i]], alderHH$flowc[alderV60$DOY==alderday$DOY[i]],
+           pch= 19, type= "b", col= coli[i], cex=2)
+    text(alderV60$VPD[alderV60$DOY==alderday$DOY[i]]+0.01, alderHH$flowc[alderV60$DOY==alderday$DOY[i]]
+         +0.001, paste(as.character(alderV60$HM[alderV60$DOY==alderday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+  
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\AlnusDayGroup2_60", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 11:20){
+    points(alderV60$VPD[alderV60$DOY==alderday$DOY[i]], alderHH$flowc[alderV60$DOY==alderday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-10], cex=2)
+    text(alderV60$VPD[alderV60$DOY==alderday$DOY[i]]+0.01, alderHH$flowc[alderV60$DOY==alderday$DOY[i]]
+         +0.001, paste(as.character(alderV60$HM[alderV60$DOY==alderday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+  
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\AlnusDayGroup3_60", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 21:30){
+    points(alderV60$VPD[alderV60$DOY==alderday$DOY[i]], alderHH$flowc[alderV60$DOY==alderday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-20], cex=2)
+    text(alderV60$VPD[alderV60$DOY==alderday$DOY[i]]+0.01, alderHH$flowc[alderV60$DOY==alderday$DOY[i]]
+         +0.001, paste(as.character(alderV60$HM[alderV60$DOY==alderday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+  
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\AlnusDayGroup4_60", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 31:40){
+    points(alderV60$VPD[alderV60$DOY==alderday$DOY[i]], alderHH$flowc[alderV60$DOY==alderday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-30], cex=2)
+    text(alderV60$VPD[alderV60$DOY==alderday$DOY[i]]+0.01, alderHH$flowc[alderV60$DOY==alderday$DOY[i]]
+         +0.001, paste(as.character(alderV60$HM[alderV60$DOY==alderday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+  
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\AlnusDayGroup5_60", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 41:50){
+    points(alderV60$VPD[alderV60$DOY==alderday$DOY[i]], alderHH$flowc[alderV60$DOY==alderday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-40], cex=2)
+    text(alderV60$VPD[alderV60$DOY==alderday$DOY[i]]+0.01, alderHH$flowc[alderV60$DOY==alderday$DOY[i]]
+         +0.001, paste(as.character(alderV60$HM[alderV60$DOY==alderday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+}
+
+#German Salix hysteresis
+salixHH<-aggregate(datHG.s$flowc, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean", na.action=
+                     "na.omit", na.rm= TRUE)
+salixV<-aggregate(datHG.s$vpd, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean", na.action=
+                    "na.omit", na.rm= TRUE)
+#alderV30<-aggregate(datHG.a$vpd, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
+ #                     "na.omit", na.rm= TRUE)
+#alderV60<-aggregate(datHG.a$vpd, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
+ #                     "na.omit", na.rm= TRUE)
+colnames(salixHH)<- c("HM", "DOY", "flowc")
+colnames(salixV)<- c("HM", "DOY", "VPD")
+#colnames(alderV30)<- c("HM", "DOY", "VPD")
+#colnames(alderV60)<- c("HM", "DOY", "VPD")
+salixday<-data.frame(DOY= unique(salixHH$DOY))
+
+
+#vpd 0 german salix
+if (plotcheck==1){
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup1", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.08), xlab="VPD", ylab= "Flow")
+  for(i in 1:10){
+    points(salixV$VPD[salixV$DOY==salixday$DOY[i]], salixHH$flowc[salixV$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i], cex=2)
+    text(salixV$VPD[salixV$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV$HM[salixV$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+  
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup2", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 11:20){
+    points(salixV$VPD[salixV$DOY==salixday$DOY[i]], salixHH$flowc[salixV$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-10], cex=2)
+    text(salixV$VPD[salixV$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV$HM[salixV$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+  
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup3", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 21:30){
+    points(salixV$VPD[salixV$DOY==salixday$DOY[i]], salixHH$flowc[salixV$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-20], cex=2)
+    text(salixV$VPD[salixV$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV$HM[salixV$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+  
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup4", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 31:40){
+    points(salixV$VPD[salixV$DOY==salixday$DOY[i]], salixHH$flowc[salixV$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-30], cex=2)
+    text(salixV$VPD[salixV$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV$HM[salixV$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+  
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup5", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 41:50){
+    points(salixV$VPD[salixV$DOY==salixday$DOY[i]], salixHH$flowc[salixV$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-40], cex=2)
+    text(salixV$VPD[salixV$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV$HM[salixV$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+}
+
+
+
+
 
 ##do vpd minus 30 and minus 60 
 
