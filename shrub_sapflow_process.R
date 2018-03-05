@@ -556,6 +556,8 @@ colnames(alderV)<- c("HM", "DOY", "VPD")
 colnames(alderV30)<- c("HM", "DOY", "VPD")
 colnames(alderV60)<- c("HM", "DOY", "VPD")
 
+alderV$flowc<- alderHH$flowc
+
 plot(alderHH$DOY+(alderHH$HM/24), alderHH$flowc)
 
 alderday<-data.frame(DOY= unique(alderHH$DOY))
@@ -752,14 +754,14 @@ salixHH<-aggregate(datHG.s$flowc, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean
                      "na.omit", na.rm= TRUE)
 salixV<-aggregate(datHG.s$vpd, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean", na.action=
                     "na.omit", na.rm= TRUE)
-#alderV30<-aggregate(datHG.a$vpd, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
- #                     "na.omit", na.rm= TRUE)
-#alderV60<-aggregate(datHG.a$vpd, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
- #                     "na.omit", na.rm= TRUE)
+salixV30<-aggregate(datHG.s$vpd.30, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean", na.action=
+                     "na.omit", na.rm= TRUE)
+salixV60<-aggregate(datHG.s$vpd.60, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean", na.action=
+                      "na.omit", na.rm= TRUE)
 colnames(salixHH)<- c("HM", "DOY", "flowc")
 colnames(salixV)<- c("HM", "DOY", "VPD")
-#colnames(alderV30)<- c("HM", "DOY", "VPD")
-#colnames(alderV60)<- c("HM", "DOY", "VPD")
+colnames(salixV30)<- c("HM", "DOY", "VPD")
+colnames(salixV60)<- c("HM", "DOY", "VPD")
 salixday<-data.frame(DOY= unique(salixHH$DOY))
 
 
@@ -826,114 +828,108 @@ if (plotcheck==1){
   dev.off()
 }
 
-
-
-
-
-##do vpd minus 30 and minus 60 
-
-
-#Kg 
-kg.func<- function(Temp) {115.8 + (0.423*Temp)}
-dat.allG$Kg<- kg.func(dat.allG$temp)
-dat.allL$Kg<- kg.func(dat.allL$temp)
-
-#conversion of transpiration to kg m-2 s-1 from g
-El.kgG<-dat.allG[,1:16]*(1/1000)
-El.kgL<-dat.allL[,1:16]*(1/1000)
-
-#stomatal conductance (gs)
-gs.func<- function (Kg.coeff, Elkg, Vpd, P)
-{((Kg.coeff*Elkg)/ Vpd)*P}
-
-Gs.rawG<-matrix(rep(NA, dim(SAG)[1]*16), ncol=16)
-Gs.rawL<-matrix(rep(NA, dim(SAL)[1]*16), ncol=16)
-
-for (i in 1:16) {
-  Gs.rawG<-gs.func(dat.allG$Kg, El.kgG, dat.allG$D, dat.allG$PdayGap)
-  Gs.rawL<-gs.func(dat.allL$Kg, El.kgL, dat.allL$D, dat.allL$PdayGap)
-}
-
-#conversion to mmol
-mol.func<-function(Gs, temp, P) {Gs*0.446* (273/(temp+273))*(P/101.3)}
-Gs.molG<- matrix(rep(NA, dim(Gs.rawG)[1]*16), ncol=16)
-Gs.mmolG<-matrix(rep(NA, dim(Gs.rawG)[1]*16),ncol=16)
-Gs.molL<- matrix(rep(NA, dim(Gs.rawL)[1]*16), ncol=16)
-Gs.mmolL<-matrix(rep(NA, dim(Gs.rawL)[1]*16),ncol=16)
-for (i in 1:16) {
-  Gs.molG<-mol.func(Gs.rawG, dat.allG$temp, dat.allG$PdayGap)
-  Gs.mmolG<-Gs.molG*1000
-  Gs.molL<-mol.func(Gs.rawL, dat.allL$temp, dat.allL$PdayGap)
-  Gs.mmolL<-Gs.molL*1000
-}
-
-#graphing stomatal conductance (mmol)
-
-
-if( plotcheck ==1 ){
+#vpd 30 german salix
+if (plotcheck==1){
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup1_30", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.08), xlab="VPD", ylab= "Flow")
+  for(i in 1:10){
+    points(salixV30$VPD[salixV30$DOY==salixday$DOY[i]], salixHH$flowc[salixV30$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i], cex=2)
+    text(salixV30$VPD[salixV30$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV30$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV30$HM[salixV30$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
   
-  #Graphs
-
-for(i in 1:16){
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup2_30", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 11:20){
+    points(salixV30$VPD[salixV30$DOY==salixday$DOY[i]], salixHH$flowc[salixV30$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-10], cex=2)
+    text(salixV30$VPD[salixV30$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV30$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV30$HM[salixV30$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
   
-  jpeg(file=paste0(plotdir, "StomatalConductance\\German\\sensor", i, ".jpeg"),
-       width=1500, height=1000, units="px")
-  par(mfrow=c(5,1))
-  plot(timestamp$TimePlot[timestamp$plotid==1],Gs.mmol[timestamp$plotid==1,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)
-  plot(timestamp$TimePlot[timestamp$plotid==2],Gs.mmol[timestamp$plotid==2,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)
-  plot(timestamp$TimePlot[timestamp$plotid==3],Gs.mmol[timestamp$plotid==3,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)
-  plot(timestamp$TimePlot[timestamp$plotid==4],Gs.mmol[timestamp$plotid==4,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)
-  plot(timestamp$TimePlot[timestamp$plotid==5],Gs.mmol[timestamp$plotid==5,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)  		
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup3_30", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 21:30){
+    points(salixV30$VPD[salixV30$DOY==salixday$DOY[i]], salixHH$flowc[salixV30$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-20], cex=2)
+    text(salixV30$VPD[salixV30$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV30$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV30$HM[salixV30$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
   
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup4_30", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 31:40){
+    points(salixV30$VPD[salixV30$DOY==salixday$DOY[i]], salixHH$flowc[salixV30$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-30], cex=2)
+    text(salixV30$VPD[salixV30$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV30$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV30$HM[salixV30$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
+  dev.off()
+  
+  coli<-rainbow(10)
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\SalixDayGroup5_30", ".jpeg"), width=1500,
+       height=1000, units="px")
+  plot(c(0,1), c(0,1), xlim=c(0,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  for(i in 41:50){
+    points(salixV30$VPD[salixV30$DOY==salixday$DOY[i]], salixHH$flowc[salixV30$DOY==salixday$DOY[i]],
+           pch= 19, type= "b", col= coli[i-40], cex=2)
+    text(salixV30$VPD[salixV30$DOY==salixday$DOY[i]]+0.01, salixHH$flowc[salixV30$DOY==salixday$DOY[i]]
+         +0.001, paste(as.character(salixV30$HM[salixV30$DOY==salixday$DOY[i]])), cex=2, col= coli[i])
+  }
   dev.off()
 }
 
+#hysteresis check 2
+salixVs<- salixV[salixV$VPD>= 0.6, ]
+salixV30s<- salixV30[salixV30$VPD>= 0.6, ]
+salixV60s<- salixV60[salixV60$VPD>= 0.6, ]
 
-for(i in 1:16){
-  
-  jpeg(file=paste0(getwd(),"\\LD\\Plots\\StomatalConductance\\sensor", i, ".jpeg"),
-       width=1500, height=1000, units="px")
-  par(mfrow=c(5,1))
-  plot(timestamp$TimePlot[timestamp$plotid==1],Gs.mmol[timestamp$plotid==1,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)
-  plot(timestamp$TimePlot[timestamp$plotid==2],Gs.mmol[timestamp$plotid==2,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)
-  plot(timestamp$TimePlot[timestamp$plotid==3],Gs.mmol[timestamp$plotid==3,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)
-  plot(timestamp$TimePlot[timestamp$plotid==4],Gs.mmol[timestamp$plotid==4,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)
-  plot(timestamp$TimePlot[timestamp$plotid==5],Gs.mmol[timestamp$plotid==5,i],
-       xlab="time", ylab="Gs ", type="b",
-       main=paste("sensor #", i), pch=19)      
-  
+alderVs<- alderV[alderV$VPD>=0.6,]
+alderV30s<- alderV30[alderV30$VPD>=0.6,]
+alderV60s<- alderV60[alderV60$VPD>=0.6,]
+
+nalderV<-aggregate(alderVs$DOY, by= list(alderVs$DOY), FUN = "length")
+nalderV30<-aggregate(alderV30s$DOY, by= list(alderV30s$DOY), FUN = "length")
+nalderV60<-aggregate(alderV60s$DOY, by= list(alderV60s$DOY), FUN = "length")
+colnames(nalderV)<- c("DOY", "n")
+colnames(nalderV30)<- c("DOY", "n")
+colnames(nalderV60)<- c("DOY", "n")
+
+nalderV<- nalderV[nalderV$n>3,]
+nalderV30<- nalderV30[nalderV30$n>3,]
+nalderV60<- nalderV60[nalderV60$n>3,]
+
+if (plotcheck== 1){
+lmalder<- list()
+for (i in 1:dim(nalderV)[1]){
+  lmalder[[i]]<- lm(alderVs$flowc[alderVs$DOY==nalderV$DOY[i]]~log(alderVs$VPD[alderVs$DOY==nalderV$DOY[i]]))
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\doy", nalderV$DOY[i], ".jpeg"),
+       width=1500,height=1000, units="px")
+  par(mai=c(2,2,2,2))
+  plot(c(0,1), c(0,1), xlim=c(-0.6,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  points(log(alderVs$VPD[alderVs$DOY==nalderV$DOY[i]]), alderVs$flowc[alderVs$DOY==nalderV$DOY[i]],
+         pch= 19, type= "p", cex=2)
+  mtext(paste("y=", round(summary(lmalder[[i]])$coefficients[1,1],3 ), "+", 
+              round(summary(lmalder[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+  mtext(paste("R2=", round(summary(lmalder[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+  mtext(paste("p=", round(summary(lmalder[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+  abline(lmalder[[i]])
   dev.off()
-}
-
-
-
-}
-
-#German old code
-#seperate by species: 1-8 salix, 9-16 alnus   ###NEEDS WORK!
-#salix<- data.frame(gs=as.vector(Gs.mmol[,1:8]), DOY=rep(dat.all$DOY, times=8), Hour=rep(dat.all$HM, times=8))
-#salix1<-aggregate(salix$gs, by=list(salix$DOY, salix$Hour), FUN="mean", na.action=na.omit)
-#s.time<-salix1$Group.1+(salix1$Group.2/24)
-#plot(s.time, salix1$x, pch=19)
   
-  #should seperating by species not be in the process script?
-  #should the 2017 field data be incorporated into this script?
+}
+}
+
+
 
