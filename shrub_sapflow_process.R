@@ -10,7 +10,7 @@ plotdir<-"z:\\student_research\\farmer\\diagPlots"
 ########################################################################################
 #turn on plotting
 #1 = make plots, 0 = don't make plots
-plotcheck<-0
+plotcheck<-1
 
 ########################################################################################
 #output datG files
@@ -557,6 +557,8 @@ colnames(alderV30)<- c("HM", "DOY", "VPD")
 colnames(alderV60)<- c("HM", "DOY", "VPD")
 
 alderV$flowc<- alderHH$flowc
+alderV30$flowc<-alderHH$flowc
+alderV60$flowc<-alderHH$flowc
 
 plot(alderHH$DOY+(alderHH$HM/24), alderHH$flowc)
 
@@ -764,7 +766,6 @@ colnames(salixV30)<- c("HM", "DOY", "VPD")
 colnames(salixV60)<- c("HM", "DOY", "VPD")
 salixday<-data.frame(DOY= unique(salixHH$DOY))
 
-
 #vpd 0 german salix
 if (plotcheck==1){
   coli<-rainbow(10)
@@ -890,15 +891,24 @@ if (plotcheck==1){
   }
   dev.off()
 }
-
+}
 #hysteresis check 2
-salixVs<- salixV[salixV$VPD>= 0.6, ]
-salixV30s<- salixV30[salixV30$VPD>= 0.6, ]
-salixV60s<- salixV60[salixV60$VPD>= 0.6, ]
 
-alderVs<- alderV[alderV$VPD>=0.6,]
-alderV30s<- alderV30[alderV30$VPD>=0.6,]
-alderV60s<- alderV60[alderV60$VPD>=0.6,]
+#fix 30
+salixVs<- salixV[salixV$VPD>= 0.6  & salixV30$HM>= 10& salixV30$HM<= 19, ]
+salixV30s<- salixV30[salixV30$VPD>= 0.6& salixV30$HM>= 10& salixV30$HM<= 19, ]
+salixV60s<- salixV60[salixV60$VPD>= 0.6& salixV30$HM>= 10& salixV30$HM<= 19, ]
+
+alderVs<- alderV[alderV$VPD>=0.6 &alderV$HM>= 10 & alderV$HM<=19,]
+alderV30s<- alderV30[alderV30$VPD>=0.6 &alderV30$HM>= 10 & alderV30$HM<=19,,]
+alderV60s<- alderV60[alderV60$VPD>=0.6&alderV60$HM>= 10 & alderV60$HM<=19,,]
+
+nsalixV<-aggregate(salixVs$DOY, by=list(salixVs$DOY), FUN = "length")
+nsalixV30<-aggregate(salixV30s$DOY, by=list(salixV30s$DOY), FUN = "length")
+nsalixV60<-aggregate(salixV60s$DOY, by=list(salixV60s$DOY), FUN = "length")
+colnames(nsalixV)<- c("DOY", "n")
+colnames(nsalixV30)<- c("DOY", "n")
+colnames(nsalixV60)<- c("DOY", "n")
 
 nalderV<-aggregate(alderVs$DOY, by= list(alderVs$DOY), FUN = "length")
 nalderV30<-aggregate(alderV30s$DOY, by= list(alderV30s$DOY), FUN = "length")
@@ -907,18 +917,36 @@ colnames(nalderV)<- c("DOY", "n")
 colnames(nalderV30)<- c("DOY", "n")
 colnames(nalderV60)<- c("DOY", "n")
 
+nsalixV<- nsalixV[nsalixV$n>3,]
+nsalixV30<- nsalixV30[nsalixV30$n>3,]
+nsalixV60<- nsalixV60[nsalixV60$n>3,]
+
+
 nalderV<- nalderV[nalderV$n>3,]
 nalderV30<- nalderV30[nalderV30$n>3,]
 nalderV60<- nalderV60[nalderV60$n>3,]
 
+#regression of agg values
+aL0<- lm(alderVs$flowc~log(alderVs$VPD))
+summary(aL0)
+plot(log(alderVs$VPD), alderVs$flowc)
+aL30<- lm(alderV30s$flowc~log(alderV30s$VPD))
+summary(aL30)
+plot(log(alderV30s$VPD), alderV30s$flowc)
+
+str(lmalder)
+rs.df<- data.frame(DOY=nalderV$DOY)
+
+#alder day figs
 if (plotcheck== 1){
 lmalder<- list()
+#logvpd
 for (i in 1:dim(nalderV)[1]){
   lmalder[[i]]<- lm(alderVs$flowc[alderVs$DOY==nalderV$DOY[i]]~log(alderVs$VPD[alderVs$DOY==nalderV$DOY[i]]))
-  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\doy", nalderV$DOY[i], ".jpeg"),
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\zero\\doy", nalderV$DOY[i], ".jpeg"),
        width=1500,height=1000, units="px")
   par(mai=c(2,2,2,2))
-  plot(c(0,1), c(0,1), xlim=c(-0.6,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  plot(c(0,1), c(0,1), xlim=c(-0.6, 1), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
   points(log(alderVs$VPD[alderVs$DOY==nalderV$DOY[i]]), alderVs$flowc[alderVs$DOY==nalderV$DOY[i]],
          pch= 19, type= "p", cex=2)
   mtext(paste("y=", round(summary(lmalder[[i]])$coefficients[1,1],3 ), "+", 
@@ -926,10 +954,73 @@ for (i in 1:dim(nalderV)[1]){
   mtext(paste("R2=", round(summary(lmalder[[i]])$r.squared, 3)), side=3, line=4, cex=2)
   mtext(paste("p=", round(summary(lmalder[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
   abline(lmalder[[i]])
+  rs.df$r.sq[i]<- summary(lmalder[[i]])$r.squared
+  rs.df$slope[i]<-summary(lmalder[[i]])$coefficients[2,1]
+  rs.df$pvalue[i]<-summary(lmalder[[i]])$coefficients[2,4]
+  dev.off()
+  
+}
+#30
+lmalder30<- list()
+for (i in 1:dim(nalderV30)[1]){
+  lmalder30[[i]]<- lm(alderV30s$flowc[alderV30s$DOY==nalderV30$DOY[i]]~log(alderV30s$VPD[alderV30s$DOY==
+  nalderV30$DOY[i]]))
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\thirty\\doy", nalderV30$DOY[i], ".jpeg"),
+       width=1500,height=1000, units="px")
+  par(mai=c(2,2,2,2))
+  plot(c(0,1), c(0,1), xlim=c(-0.6,1), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  points(log(alderV30s$VPD[alderV30s$DOY==nalderV30$DOY[i]]), alderV30s$flowc[alderV30s$DOY==
+  nalderV30$DOY[i]], pch= 19, type= "p", cex=2)
+  mtext(paste("y=", round(summary(lmalder30[[i]])$coefficients[1,1],3 ), "+", 
+              round(summary(lmalder30[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+  mtext(paste("R2=", round(summary(lmalder30[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+  mtext(paste("p=", round(summary(lmalder30[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+  abline(lmalder30[[i]])
+  dev.off()
+  
+}
+#60
+lmalder60<- list()
+for (i in 1:dim(nalderV60)[1]){
+  lmalder60[[i]]<- lm(alderV60s$flowc[alderV60s$DOY==nalderV60$DOY[i]]~log(alderV60s$VPD[alderV60s$DOY==
+    nalderV60$DOY[i]]))
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\sixty\\doy", nalderV60$DOY[i], ".jpeg"),
+       width=1500,height=1000, units="px")
+  par(mai=c(2,2,2,2))
+  plot(c(0,1), c(0,1), xlim=c(-0.6,1), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  points(log(alderV60s$VPD[alderV60s$DOY==nalderV60$DOY[i]]), alderV60s$flowc[alderV60s$DOY==
+    nalderV60$DOY[i]], pch= 19, type= "p", cex=2)
+  mtext(paste("y=", round(summary(lmalder60[[i]])$coefficients[1,1],3 ), "+", 
+              round(summary(lmalder60[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+  mtext(paste("R2=", round(summary(lmalder60[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+  mtext(paste("p=", round(summary(lmalder60[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+  abline(lmalder60[[i]])
   dev.off()
   
 }
 }
 
+#salix day figs 
+if (plotcheck==1){
+
+  lmalder<- list()
+  for (i in 1:dim(nalderV)[1]){
+    lmalder[[i]]<- lm(alderVs$flowc[alderVs$DOY==nalderV$DOY[i]]~log(alderVs$VPD[alderVs$DOY==nalderV$DOY[i]]))
+    jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\zero\\doy", nalderV$DOY[i], ".jpeg"),
+         width=1500,height=1000, units="px")
+    par(mai=c(2,2,2,2))
+    plot(c(0,1), c(0,1), xlim=c(-0.6,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+    points(log(alderVs$VPD[alderVs$DOY==nalderV$DOY[i]]), alderVs$flowc[alderVs$DOY==nalderV$DOY[i]],
+           pch= 19, type= "p", cex=2)
+    mtext(paste("y=", round(summary(lmalder[[i]])$coefficients[1,1],3 ), "+", 
+                round(summary(lmalder[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+    mtext(paste("R2=", round(summary(lmalder[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+    mtext(paste("p=", round(summary(lmalder[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+    abline(lmalder[[i]])
+    dev.off()
+    
+}
+
+rs.df<- data.frame()
 
 
