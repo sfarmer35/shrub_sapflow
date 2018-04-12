@@ -10,7 +10,7 @@ plotdir<-"z:\\student_research\\farmer\\diagPlots"
 ########################################################################################
 #turn on plotting
 #1 = make plots, 0 = don't make plots
-plotcheck<-1
+plotcheck<-0
 
 ########################################################################################
 #output datG files
@@ -475,36 +475,26 @@ for(i in 1:16){
 datHG<-dat.allG
 datHG$hour.m30<- datHG$HM- 0.5
 datHG$hour.m60<- datHG$HM - 1
+datHG$hour.m90<- datHG$HM-1.5
+datHG$hour.m120<- datHG$HM-2
 vpdG1<- data.frame(hour.m30=dat.allG$HM, vpd.30= dat.allG$D, DOY= dat.allG$DOY)
 vpdG2<- data.frame(hour.m60=dat.allG$HM, vpd.60= dat.allG$D, DOY= dat.allG$DOY)
+vpdG3<- data.frame(hour.m90=dat.allG$HM, vpd.90= dat.allG$D, DOY= dat.allG$DOY)
+vpdG4<- data.frame(hour.m120=dat.allG$HM, vpd.120= dat.allG$D, DOY= dat.allG$DOY)
 
 datHG<- join(datHG, vpdG1, by= c("hour.m30", "DOY"), type= "left")
 datHG<- join(datHG, vpdG2, by= c("hour.m60", "DOY"), type= "left")
+datHG<- join(datHG, vpdG3, by= c("hour.m90", "DOY"), type= "left")
+datHG<- join(datHG, vpdG4, by= c("hour.m120", "DOY"), type= "left")
+
+#individual days graph
 
 #seperate by species: 1-8 salix, 9-16 alnus 
-#german salix
-datHG.s<-data.frame(DOY= rep(datHG$DOY, times=8),HM= rep(datHG$HM, times=8), 
-    vpd= rep(datHG$D, times= 8),vpd.30= rep(datHG$vpd.30, times=8),  vpd.60= rep(datHG$vpd.60,
-    times=8),flow=as.vector(data.matrix(datHG[,1:8])))
-datHG.s$flowc<-ifelse(datHG.s$flow==0, NA, datHG.s$flow)
-plot(datHG.s$vpd[datHG.s$vpd >= 0.6], datHG.s$flowc[datHG.s$vpd>= 0.6])
-HG.s0<- lm(datHG.s$flowc[datHG.s$vpd>= 0.6]~datHG.s$vpd[datHG.s$vpd>= 0.6])
-summary(HG.s0)
-
-plot(datHG.s$vpd.30 [datHG.s$vpd.30 >= 0.6],datHG.s$flowc[datHG.s$vpd.30 >= 0.6])
-HG.s30<- lm(datHG.s$flowc[datHG.s$vpd.30>= 0.6]~datHG.s$vpd.30[datHG.s$vpd.30>= 0.6])
-summary(HG.s30)
-
-plot(datHG.s$vpd.60 [datHG.s$vpd.60 >= 0.6],datHG.s$flowc [datHG.s$vpd.60 >= 0.6])
-HG.s60<- lm(datHG.s$flowc[datHG.s$vpd.60>= 0.6]~datHG.s$vpd.60[datHG.s$vpd.60>= 0.6])
-summary(HG.s60)
-
-dev.off()
-
 #german alnus
 datHG.a<-data.frame(DOY= rep(datHG$DOY, times=8),HM= rep(datHG$HM, times=8), 
                     vpd= rep(datHG$D, times= 8), vpd.30= rep(datHG$vpd.30, times=8), 
-                    vpd.60= rep(datHG$vpd.60, times=8), flow=as.vector(data.matrix(datHG[,9:16])))
+                    vpd.60= rep(datHG$vpd.60, times=8), vpd.90= rep(datHG$vpd.90, times=8),
+                    vpd.120= rep(datHG$vpd.120, times=8), flow=as.vector(data.matrix(datHG[,9:16])))
 datHG.a$flowc<-ifelse(datHG.a$flow==0, NA, datHG.a$flow)
 
 plot(datHG.a$vpd[datHG.a$vpd>= 0.6], datHG.a$flowc[datHG.a$vpd>= 0.6])
@@ -521,22 +511,44 @@ summary(HG.a60)
 
 #day 187
 plot(datHG.a$vpd[datHG.a$vpd>= 0.6 & datHG.a$DOY==187], datHG.a$flowc[datHG.a$vpd>=
-    0.6 & datHG.a$DOY==187])
+                                                                        0.6 & datHG.a$DOY==187])
 HG.a0<- lm(datHG.a$flowc[datHG.a$vpd>= 0.6& datHG.a$DOY==187]~
              datHG.a$vpd[datHG.a$vpd>= 0.6 & datHG.a$DOY==187])
 summary(HG.a0)
 
 plot(datHG.a$vpd.30[datHG.a$vpd.30>= 0.6 & datHG.a$DOY==187], datHG.a$flowc[datHG.a$vpd.30>=
-          0.6 & datHG.a$DOY==187])
+                                                                              0.6 & datHG.a$DOY==187])
 HG.a30<- lm(datHG.a$flowc[datHG.a$vpd.30>= 0.6& datHG.a$DOY==187]~
-             datHG.a$vpd.30[datHG.a$vpd.30>= 0.6 & datHG.a$DOY==187])
+              datHG.a$vpd.30[datHG.a$vpd.30>= 0.6 & datHG.a$DOY==187])
 summary(HG.a30)
 
 plot(datHG.a$vpd.60[datHG.a$vpd.60>= 0.6 & datHG.a$DOY==187], datHG.a$flowc[datHG.a$vpd.60>=
-                0.6 & datHG.a$DOY==187])
+                                                                              0.6 & datHG.a$DOY==187])
 HG.a60<- lm(datHG.a$flowc[datHG.a$vpd.60>= 0.6& datHG.a$DOY==187]~
               datHG.a$vpd.60[datHG.a$vpd.60>= 0.6 & datHG.a$DOY==187])
 summary(HG.a60)
+
+#german salix
+datHG.s<-data.frame(DOY= rep(datHG$DOY, times=8), HM= rep(datHG$HM, times=8),
+    vpd= rep(datHG$D, times= 8),vpd.30= rep(datHG$vpd.30, times=8),  vpd.60= rep(datHG$vpd.60,times=8),
+    vpd.90= rep(datHG$vpd.90, times=8), vpd.120= rep(datHG$vpd.120, times=8),
+    flow=as.vector(data.matrix(datHG[,1:8])))
+datHG.s$flowc<-ifelse(datHG.s$flow==0, NA, datHG.s$flow)
+
+plot(datHG.s$vpd[datHG.s$vpd >= 0.6], datHG.s$flowc[datHG.s$vpd>= 0.6])
+HG.s0<- lm(datHG.s$flowc[datHG.s$vpd>= 0.6]~datHG.s$vpd[datHG.s$vpd>= 0.6])
+summary(HG.s0)
+
+plot(datHG.s$vpd.30 [datHG.s$vpd.30 >= 0.6],datHG.s$flowc[datHG.s$vpd.30 >= 0.6])
+HG.s30<- lm(datHG.s$flowc[datHG.s$vpd.30>= 0.6]~datHG.s$vpd.30[datHG.s$vpd.30>= 0.6])
+summary(HG.s30)
+
+plot(datHG.s$vpd.60 [datHG.s$vpd.60 >= 0.6],datHG.s$flowc [datHG.s$vpd.60 >= 0.6])
+HG.s60<- lm(datHG.s$flowc[datHG.s$vpd.60>= 0.6]~datHG.s$vpd.60[datHG.s$vpd.60>= 0.6])
+summary(HG.s60)
+
+dev.off()
+
 
 #ld species?
 #1,2,3,4,7,9,10,11,12,14,16 
@@ -551,14 +563,23 @@ alderV30<-aggregate(datHG.a$vpd.30, by= list(datHG.a$HM, datHG.a$DOY), FUN = "me
           "na.omit", na.rm= TRUE)
 alderV60<-aggregate(datHG.a$vpd.60, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
           "na.omit", na.rm= TRUE)
+alderV90<-aggregate(datHG.a$vpd.90, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
+                      "na.omit", na.rm= TRUE)
+alderV120<-aggregate(datHG.a$vpd.120, by= list(datHG.a$HM, datHG.a$DOY), FUN = "mean", na.action=
+                      "na.omit", na.rm= TRUE)
+
 colnames(alderHH)<- c("HM", "DOY", "flowc")
 colnames(alderV)<- c("HM", "DOY", "VPD")
 colnames(alderV30)<- c("HM", "DOY", "VPD")
 colnames(alderV60)<- c("HM", "DOY", "VPD")
+colnames(alderV90)<- c("HM", "DOY", "VPD")
+colnames(alderV120)<- c("HM", "DOY", "VPD")
 
 alderV$flowc<- alderHH$flowc
 alderV30$flowc<-alderHH$flowc
 alderV60$flowc<-alderHH$flowc
+alderV90$flowc<-alderHH$flowc
+alderV120$flowc<-alderHH$flowc
 
 plot(alderHH$DOY+(alderHH$HM/24), alderHH$flowc)
 
@@ -750,6 +771,7 @@ if (plotcheck==1){
   }
   dev.off()
 }
+#add in these plots for 90 and 120?
 
 #German Salix hysteresis
 salixHH<-aggregate(datHG.s$flowc, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean", na.action=
@@ -760,11 +782,25 @@ salixV30<-aggregate(datHG.s$vpd.30, by= list(datHG.s$HM, datHG.s$DOY), FUN = "me
                      "na.omit", na.rm= TRUE)
 salixV60<-aggregate(datHG.s$vpd.60, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean", na.action=
                       "na.omit", na.rm= TRUE)
+salixV90<-aggregate(datHG.s$vpd.90, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean", na.action=
+                      "na.omit", na.rm= TRUE)
+salixV120<-aggregate(datHG.s$vpd.120, by= list(datHG.s$HM, datHG.s$DOY), FUN = "mean", na.action=
+                      "na.omit", na.rm= TRUE)
+
 colnames(salixHH)<- c("HM", "DOY", "flowc")
 colnames(salixV)<- c("HM", "DOY", "VPD")
 colnames(salixV30)<- c("HM", "DOY", "VPD")
 colnames(salixV60)<- c("HM", "DOY", "VPD")
+colnames(salixV90)<- c("HM", "DOY", "VPD")
+colnames(salixV120)<- c("HM", "DOY", "VPD")
 salixday<-data.frame(DOY= unique(salixHH$DOY))
+
+salixV$flowc<- salixHH$flowc
+salixV30$flowc<-salixHH$flowc
+salixV60$flowc<-salixHH$flowc
+salixV90$flowc<-salixHH$flowc
+salixV120$flowc<-salixHH$flowc
+
 
 #vpd 0 german salix
 if (plotcheck==1){
@@ -894,18 +930,27 @@ if (plotcheck==1){
 }
 #hysteresis check 2
 
-#fix 30
+#fix order? (put alnus first compared to salix)
+###HELP###
+#confused what this code is about....
 salixVs<- salixV[salixV$VPD>= 0.6  & salixV30$HM>= 10& salixV30$HM<= 19, ]
 salixV30s<- salixV30[salixV30$VPD>= 0.6& salixV30$HM>= 10& salixV30$HM<= 19, ]
 salixV60s<- salixV60[salixV60$VPD>= 0.6& salixV30$HM>= 10& salixV30$HM<= 19, ]
 
+#think I may have just messed it up from when I moved it from here. Is this correct???:
 alderVs<- alderV[alderV$VPD>=0.6 &alderV$HM>= 10 & alderV$HM<=19,]
-alderV30s<- alderV30[alderV30$VPD>=0.6 &alderV30$HM>= 10 & alderV30$HM<=19,,]
-alderV60s<- alderV60[alderV60$VPD>=0.6&alderV60$HM>= 10 & alderV60$HM<=19,,]
+alderV30s<- alderV30[alderV30$VPD>=0.6 &alderV30$HM>= 10 & alderV30$HM<=19,]
+alderV60s<- alderV60[alderV60$VPD>=0.6&alderV60$HM>= 10 & alderV60$HM<=19,]
+alderV90s<- alderV90[alderV90$VPD>=0.6&alderV90$HM>= 10 & alderV90$HM<=19,]
+alderV120s<- alderV120[alderV120$VPD>=0.6&alderV120$HM>= 10 & alderV120$HM<=19,]
 
 nsalixV<-aggregate(salixVs$DOY, by=list(salixVs$DOY), FUN = "length")
 nsalixV30<-aggregate(salixV30s$DOY, by=list(salixV30s$DOY), FUN = "length")
 nsalixV60<-aggregate(salixV60s$DOY, by=list(salixV60s$DOY), FUN = "length")
+nsalixV90<-aggregate(salixV90s$DOY, by=list(salixV90s$DOY), FUN = "length")
+nsalixV120<-aggregate(salixV120s$DOY, by=list(salixV120s$DOY), FUN = "length")
+
+#fix salix stuff when all is right 
 colnames(nsalixV)<- c("DOY", "n")
 colnames(nsalixV30)<- c("DOY", "n")
 colnames(nsalixV60)<- c("DOY", "n")
@@ -913,18 +958,23 @@ colnames(nsalixV60)<- c("DOY", "n")
 nalderV<-aggregate(alderVs$DOY, by= list(alderVs$DOY), FUN = "length")
 nalderV30<-aggregate(alderV30s$DOY, by= list(alderV30s$DOY), FUN = "length")
 nalderV60<-aggregate(alderV60s$DOY, by= list(alderV60s$DOY), FUN = "length")
+nalderV90<-aggregate(alderV90s$DOY, by= list(alderV90s$DOY), FUN = "length")
+nalderV120<-aggregate(alderV120s$DOY, by= list(alderV120s$DOY), FUN = "length")
 colnames(nalderV)<- c("DOY", "n")
 colnames(nalderV30)<- c("DOY", "n")
 colnames(nalderV60)<- c("DOY", "n")
+colnames(nalderV90)<- c("DOY", "n")
+colnames(nalderV120)<- c("DOY", "n")
 
 nsalixV<- nsalixV[nsalixV$n>3,]
 nsalixV30<- nsalixV30[nsalixV30$n>3,]
 nsalixV60<- nsalixV60[nsalixV60$n>3,]
 
-
 nalderV<- nalderV[nalderV$n>3,]
 nalderV30<- nalderV30[nalderV30$n>3,]
 nalderV60<- nalderV60[nalderV60$n>3,]
+nalderV90<- nalderV90[nalderV90$n>3,]
+nalderV120<- nalderV120[nalderV120$n>3,]
 
 #regression of agg values
 aL0<- lm(alderVs$flowc~log(alderVs$VPD))
@@ -934,8 +984,16 @@ aL30<- lm(alderV30s$flowc~log(alderV30s$VPD))
 summary(aL30)
 plot(log(alderV30s$VPD), alderV30s$flowc)
 
-str(lmalder)
-rs.df<- data.frame(DOY=nalderV$DOY)
+s.rs.df<- data.frame(DOY=nalderV$DOY)
+s.rs.df30<-data.frame(DOY=nalderV$DOY)
+s.rs.df60<-data.frame(DOY=nalderV$DOY)
+
+a.rs.df<- data.frame(DOY=nalderV$DOY)
+a.rs.df30<-data.frame(DOY=nalderV$DOY)
+a.rs.df60<-data.frame(DOY=nalderV$DOY)
+a.rs.df90<-data.frame(DOY=nalderV$DOY)
+a.rs.df120<-data.frame(DOY=nalderV$DOY)
+
 
 #alder day figs
 if (plotcheck== 1){
@@ -954,9 +1012,9 @@ for (i in 1:dim(nalderV)[1]){
   mtext(paste("R2=", round(summary(lmalder[[i]])$r.squared, 3)), side=3, line=4, cex=2)
   mtext(paste("p=", round(summary(lmalder[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
   abline(lmalder[[i]])
-  rs.df$r.sq[i]<- summary(lmalder[[i]])$r.squared
-  rs.df$slope[i]<-summary(lmalder[[i]])$coefficients[2,1]
-  rs.df$pvalue[i]<-summary(lmalder[[i]])$coefficients[2,4]
+  a.rs.df$r.sq[i]<- summary(lmalder[[i]])$r.squared
+  a.rs.df$slope[i]<-summary(lmalder[[i]])$coefficients[2,1]
+  a.rs.df$pvalue[i]<-summary(lmalder[[i]])$coefficients[2,4]
   dev.off()
   
 }
@@ -976,6 +1034,9 @@ for (i in 1:dim(nalderV30)[1]){
   mtext(paste("R2=", round(summary(lmalder30[[i]])$r.squared, 3)), side=3, line=4, cex=2)
   mtext(paste("p=", round(summary(lmalder30[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
   abline(lmalder30[[i]])
+  a.rs.df30$r.sq30[i]<- summary(lmalder30[[i]])$r.squared
+  a.rs.df30$slope30[i]<-summary(lmalder30[[i]])$coefficients[2,1]
+  a.rs.df30$pvalue30[i]<-summary(lmalder30[[i]])$coefficients[2,4]
   dev.off()
   
 }
@@ -995,7 +1056,54 @@ for (i in 1:dim(nalderV60)[1]){
   mtext(paste("R2=", round(summary(lmalder60[[i]])$r.squared, 3)), side=3, line=4, cex=2)
   mtext(paste("p=", round(summary(lmalder60[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
   abline(lmalder60[[i]])
+  a.rs.df60$r.sq60[i]<- summary(lmalder60[[i]])$r.squared
+  a.rs.df60$slope60[i]<-summary(lmalder60[[i]])$coefficients[2,1]
+  a.rs.df60$pvalue60[i]<-summary(lmalder60[[i]])$coefficients[2,4]
   dev.off()
+  
+}
+#90
+lmalder90<- list()
+for (i in 1:dim(nalderV90)[1]){
+  lmalder90[[i]]<- lm(alderV90s$flowc[alderV90s$DOY==nalderV90$DOY[i]]~log(alderV90s$VPD[alderV90s$DOY==
+                                                                                           nalderV90$DOY[i]]))
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\sixty\\doy", nalderV90$DOY[i], ".jpeg"),
+       width=1500,height=1000, units="px")
+  par(mai=c(2,2,2,2))
+  plot(c(0,1), c(0,1), xlim=c(-0.6,1), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  points(log(alderV90s$VPD[alderV90s$DOY==nalderV90$DOY[i]]), alderV90s$flowc[alderV90s$DOY==
+                                                                                nalderV90$DOY[i]], pch= 19, type= "p", cex=2)
+  mtext(paste("y=", round(summary(lmalder90[[i]])$coefficients[1,1],3 ), "+", 
+              round(summary(lmalder90[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+  mtext(paste("R2=", round(summary(lmalder90[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+  mtext(paste("p=", round(summary(lmalder90[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+  abline(lmalder90[[i]])
+  a.rs.df90$r.sq90[i]<- summary(lmalder90[[i]])$r.squared
+  a.rs.df90$slope90[i]<-summary(lmalder90[[i]])$coefficients[2,1]
+  a.rs.df90$pvalue90[i]<-summary(lmalder90[[i]])$coefficients[2,4]
+  dev.off()
+}
+  
+#120
+  lmalder120<- list()
+  for (i in 1:dim(nalderV120)[1]){
+    lmalder120[[i]]<- lm(alderV120s$flowc[alderV120s$DOY==nalderV120$DOY[i]]~log(alderV120s$VPD[alderV120s$DOY==
+                                                                                             nalderV120$DOY[i]]))
+    jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\sixty\\doy", nalderV120$DOY[i], ".jpeg"),
+         width=1500,height=1000, units="px")
+    par(mai=c(2,2,2,2))
+    plot(c(0,1), c(0,1), xlim=c(-0.6,1), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+    points(log(alderV120s$VPD[alderV120s$DOY==nalderV120$DOY[i]]), alderV120s$flowc[alderV120s$DOY==
+                                                                                  nalderV120$DOY[i]], pch= 19, type= "p", cex=2)
+    mtext(paste("y=", round(summary(lmalder120[[i]])$coefficients[1,1],3 ), "+", 
+                round(summary(lmalder120[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+    mtext(paste("R2=", round(summary(lmalder120[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+    mtext(paste("p=", round(summary(lmalder120[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+    abline(lmalder120[[i]])
+    a.rs.df120$r.sq120[i]<- summary(lmalder120[[i]])$r.squared
+    a.rs.df120$slope120[i]<-summary(lmalder120[[i]])$coefficients[2,1]
+    a.rs.df120$pvalue120[i]<-summary(lmalder120[[i]])$coefficients[2,4]
+    dev.off()
   
 }
 }
@@ -1003,24 +1111,108 @@ for (i in 1:dim(nalderV60)[1]){
 #salix day figs 
 if (plotcheck==1){
 
-  lmalder<- list()
-  for (i in 1:dim(nalderV)[1]){
-    lmalder[[i]]<- lm(alderVs$flowc[alderVs$DOY==nalderV$DOY[i]]~log(alderVs$VPD[alderVs$DOY==nalderV$DOY[i]]))
-    jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\zero\\doy", nalderV$DOY[i], ".jpeg"),
+  lmsalix<- list()
+  for (i in 1:dim(nsalixV)[1]){
+    lmsalix[[i]]<- lm(salixVs$flowc[salixVs$DOY==nsalixV$DOY[i]]~log(salixVs$VPD[salixVs$DOY==nsalixV$DOY[i]]))
+    jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\zero\\doyS", nsalixV$DOY[i], ".jpeg"),
          width=1500,height=1000, units="px")
     par(mai=c(2,2,2,2))
     plot(c(0,1), c(0,1), xlim=c(-0.6,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
-    points(log(alderVs$VPD[alderVs$DOY==nalderV$DOY[i]]), alderVs$flowc[alderVs$DOY==nalderV$DOY[i]],
+    points(log(salixVs$VPD[salixVs$DOY==nsalixV$DOY[i]]), salixVs$flowc[salixVs$DOY==nsalixV$DOY[i]],
            pch= 19, type= "p", cex=2)
-    mtext(paste("y=", round(summary(lmalder[[i]])$coefficients[1,1],3 ), "+", 
-                round(summary(lmalder[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
-    mtext(paste("R2=", round(summary(lmalder[[i]])$r.squared, 3)), side=3, line=4, cex=2)
-    mtext(paste("p=", round(summary(lmalder[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
-    abline(lmalder[[i]])
+    mtext(paste("y=", round(summary(lmsalix[[i]])$coefficients[1,1],3 ), "+", 
+                round(summary(lmsalix[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+    mtext(paste("R2=", round(summary(lmsalix[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+    mtext(paste("p=", round(summary(lmsalix[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+    abline(lmsalix[[i]])
+    s.rs.df$r.sq[i]<- summary(lmsalix[[i]])$r.squared
+    s.rs.df$slope[i]<-summary(lmsalix[[i]])$coefficients[2,1]
+    s.rs.df$pvalue[i]<-summary(lmsalix[[i]])$coefficients[2,4]
     dev.off()
-    
+}
+lmsalix30<- list()
+for (i in 1:dim(nsalixV30)[1]){
+  lmsalix30[[i]]<- lm(salixV30s$flowc[salixV30s$DOY==nsalixV30$DOY[i]]~log(salixV30s$VPD[salixV30s$DOY==nsalixV30$DOY[i]]))
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\zero\\doyS", nsalixV30$DOY[i], ".jpeg"),
+       width=1500,height=1000, units="px")
+  par(mai=c(2,2,2,2))
+  plot(c(0,1), c(0,1), xlim=c(-0.6,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  points(log(salixV30s$VPD[salixV30s$DOY==nsalixV30$DOY[i]]), salixV30s$flowc[salixV30s$DOY==nsalixV30$DOY[i]],
+         pch= 19, type= "p", cex=2)
+  mtext(paste("y=", round(summary(lmsalix30[[i]])$coefficients[1,1],3 ), "+", 
+             round(summary(lmsalix30[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+  #mtext(paste("R2=", round(summary(lmsalix30[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+  #mtext(paste("p=", round(summary(lmsalix30[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+  #abline(lmsalix30[[i]])
+  #s.rs.df30$r.sq30[i]<- summary(lmsalix30[[i]])$r.squared
+  #s.rs.df30$slope30[i]<-summary(lmsalix30[[i]])$coefficients[2,1]
+  #s.rs.df30$pvalue30[i]<-summary(lmsalix30[[i]])$coefficients[2,4]
+  dev.off()
 }
 
-rs.df<- data.frame()
+lmsalix90<- list()
+for (i in 1:dim(nsalixV90)[1]){
+  lmsalix90[[i]]<- lm(salixV90s$flowc[salixV90s$DOY==nsalixV90$DOY[i]]~log(salixV90s$VPD[salixV90s$DOY==nsalixV90$DOY[i]]))
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\zero\\doyS", nsalixV90$DOY[i], ".jpeg"),
+       width=1500,height=1000, units="px")
+  par(mai=c(2,2,2,2))
+  plot(c(0,1), c(0,1), xlim=c(-0.6,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  points(log(salixV90s$VPD[salixV90s$DOY==nsalixV90$DOY[i]]), salixV90s$flowc[salixV90s$DOY==nsalixV90$DOY[i]],
+         pch= 19, type= "p", cex=2)
+  mtext(paste("y=", round(summary(lmsalix90[[i]])$coefficients[1,1],3 ), "+", 
+              round(summary(lmsalix90[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+  mtext(paste("R2=", round(summary(lmsalix90[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+  mtext(paste("p=", round(summary(lmsalix90[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+  abline(lmsalix90[[i]])
+  s.rs.df90$r.sq90[i]<- summary(lmsalix90[[i]])$r.squared
+  s.rs.df90$slope90[i]<-summary(lmsalix90[[i]])$coefficients[2,1]
+  s.rs.df90$pvalue90[i]<-summary(lmsalix90[[i]])$coefficients[2,4]
+  dev.off()
+}
+lmsalix120<- list()
+for (i in 1:dim(nsalixV120)[1]){
+  lmsalix120[[i]]<- lm(salixV120s$flowc[salixV120s$DOY==nsalixV120$DOY[i]]~log(salixV120s$VPD[salixV120s$DOY==nsalixV120$DOY[i]]))
+  jpeg(file=paste0(plotdir,"\\Hysteresis\\German\\Regression\\zero\\doyS", nsalixV120$DOY[i], ".jpeg"),
+       width=1500,height=1000, units="px")
+  par(mai=c(2,2,2,2))
+  plot(c(0,1), c(0,1), xlim=c(-0.6,2.5), ylim= c(0, 0.1), xlab="VPD", ylab= "Flow")
+  points(log(salixV120s$VPD[salixV120s$DOY==nsalixV120$DOY[i]]), salixV120s$flowc[salixV120s$DOY==nsalixV120$DOY[i]],
+         pch= 19, type= "p", cex=2)
+  mtext(paste("y=", round(summary(lmsalix120[[i]])$coefficients[1,1],3 ), "+", 
+              round(summary(lmsalix120[[i]])$coefficients[2,1],3 ), "xVPD"), side=3, line=2,cex=2)
+  mtext(paste("R2=", round(summary(lmsalix120[[i]])$r.squared, 3)), side=3, line=4, cex=2)
+  mtext(paste("p=", round(summary(lmsalix120[[i]])$coefficients[2,4],3 )), side=3, line=6, cex=2)
+  abline(lmsalix120[[i]])
+  s.rs.df120$r.sq120[i]<- summary(lmsalix120[[i]])$r.squared
+  s.rs.df120$slope120[i]<-summary(lmsalix120[[i]])$coefficients[2,1]
+  s.rs.df120$pvalue120[i]<-summary(lmsalix120[[i]])$coefficients[2,4]
+  dev.off()
+}
+}
 
+
+a.rs.df.some<- join(a.rs.df,a.rs.df30, by= "DOY")
+a.rs.df.some1<- join(a.rs.df.some, a.rs.df60, by = "DOY")
+a.rs.df.some2<- join(a.rs.df.some1, a.rs.df90, by = "DOY")
+a.rs.df.all<- join(a.rs.df.some2, a.rs.df120, by= "DOY")
+
+r.sq.all<-data.frame(r.0= a.rs.df.all$r.sq, r.30= a.rs.df.all$r.sq30, r.60= a.rs.df.all$r.sq60,
+                     r.90= a.rs.df.all$r.sq90, r.120= a.rs.df.all$r.sq120)
+
+plot(~r.sq.all$r.0+r.sq.all$r.30+r.sq.all$r.60)
+a.rs.df.all$rdiff1<- a.rs.df.all$r.sq-a.rs.df.all$r.sq30
+a.rs.df.all$rdiff2<- a.rs.df.all$r.sq-a.rs.df.all$r.sq60
+a.rs.df.all$rdiff3<- a.rs.df.all$r.sq30-a.rs.df.all$r.sq60
+
+par(mfrow=c(1,5))
+hist(a.rs.df.all$r.sq, breaks= seq(0,1, by=0.1))
+hist(a.rs.df.all$r.sq30, breaks= seq(0,1, by=0.1))
+hist(a.rs.df.all$r.sq60, breaks= seq(0,1, by=0.1))
+hist(a.rs.df.all$r.sq90, breaks= seq(0,1, by=0.1))
+hist(a.rs.df.all$r.sq120, breaks= seq(0,1, by=0.1))
+alder.rsq<-data.frame(colMeans(r.sq.all))
+  #gets better with time, what about 90 and 120  back?
+
+s.rs.df.some<- join(s.rs.df, a.rs.df30, by = "DOY")
+s.rs.df.all<- join(a.rs.df.som, a.rs.df60, by= "DOY")
 
